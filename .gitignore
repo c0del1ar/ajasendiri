@@ -9,6 +9,11 @@ ajasendiri
 .venv/
 *.ajapkg
 
+# Keep committed test fixture modules under tests/
+!tests/spec/pass/.aja/
+!tests/spec/pass/.aja/site-packages/
+!tests/spec/pass/.aja/site-packages/*.aja
+
 # Temp/logs
 *.log
 *.tmp
