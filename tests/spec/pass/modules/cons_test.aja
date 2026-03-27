@@ -1,0 +1,10 @@
+fuc ally(a: str, b: str) -> str:
+    out = a + "&" + b
+    return out
+
+counter = 9
+
+export (
+    ally,
+    counter
+)

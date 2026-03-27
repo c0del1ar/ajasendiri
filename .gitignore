@@ -1,0 +1,27 @@
+# Build outputs
+ajasendiri
+*.o
+*.d
+
+# Project runtime/artifacts
+.aja/
+.ajaenv/
+.venv/
+*.ajapkg
+
+# Temp/logs
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python cache (tooling scripts)
+__pycache__/
+*.pyc

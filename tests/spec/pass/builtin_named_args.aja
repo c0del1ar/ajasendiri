@@ -1,0 +1,15 @@
+import (
+    "fs"
+    "http"
+    "rand"
+    "time"
+)
+
+path = "/tmp/aja_builtin_named_args.txt"
+fs.write(path = path, text = "hello")
+print(fs.read(path = path))
+print(http.request(url = "file:///tmp/aja_builtin_named_args.txt", method = "GET"))
+rand.seed(seed = 99)
+print(rand.int(max = 3, min = 3))
+time.sleep(ms = 0)
+print("ok")

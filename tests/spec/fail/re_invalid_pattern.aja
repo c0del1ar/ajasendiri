@@ -1,0 +1,5 @@
+import (
+    "modules/re"
+)
+
+print(re.isMatch("[", "abc"))

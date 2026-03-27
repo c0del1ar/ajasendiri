@@ -1,0 +1,5 @@
+import (
+    "modules/text"
+)
+
+print(text.splitChar("a,b", "--"))

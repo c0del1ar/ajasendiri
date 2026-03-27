@@ -1,0 +1,17 @@
+ch = chan()
+
+select:
+    case recv(ch) as v:
+        print(v)
+    default:
+        print("none")
+
+select:
+    case send(ch, 9):
+        print("sent")
+
+select:
+    case recv(ch) as got:
+        print(got)
+    default:
+        print("none")

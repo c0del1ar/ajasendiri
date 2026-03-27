@@ -1,0 +1,16 @@
+import (
+    "modules/str"
+)
+
+print(str.startsWith("ajasendiri", "aja"))
+print(str.endsWith("ajasendiri", "diri"))
+print(str.indexOf("banana", "na"))
+print(str.contains("banana", "x"))
+print(str.repeat("ha", 2))
+
+parts = str.split("a|b|c", "|")
+print(length(parts))
+print(parts[1])
+print(str.join(parts, "-"))
+print(str.trim("  hi  "))
+print(str.replaceAll("a-b-a", "-", "+"))

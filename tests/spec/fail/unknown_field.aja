@@ -1,0 +1,5 @@
+type User:
+    age: int
+
+u = User(10)
+print(u.name)

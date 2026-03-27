@@ -1,0 +1,5 @@
+ch = chan(2)
+send(ch, 10)
+send(ch, 20)
+print(recv(ch))
+print(recv(ch))

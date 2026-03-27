@@ -1,0 +1,5 @@
+import (
+    "http"
+)
+
+print(http.requestEx("GET"))

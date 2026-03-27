@@ -1,0 +1,9 @@
+type Person:
+    name: str
+
+fuc (p: Person) label(prefix: str) -> str:
+    return prefix + p.name
+
+export (
+    Person
+)

@@ -1,0 +1,31 @@
+x = 2
+match x:
+    case 1:
+        print("one")
+    case 2:
+        print("two")
+    default:
+        print("other")
+
+y = "cat"
+match y:
+    case "dog":
+        print("d")
+    case "cat":
+        print("c")
+
+n = 2.0
+match n:
+    case 2:
+        print("num")
+
+fuc label(v: int) -> str:
+    match v:
+        case 0:
+            return "zero"
+        case 1:
+            return "one"
+        default:
+            return "many"
+
+print(label(3))

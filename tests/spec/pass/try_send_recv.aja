@@ -1,0 +1,6 @@
+ch = chan()
+print(trySend(ch, 1))
+print(tryRecv(ch, 0))
+print(tryRecv(ch, 7))
+close(ch)
+print(trySend(ch, 2))

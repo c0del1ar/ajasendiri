@@ -1,0 +1,9 @@
+x = False
+if x and int("x") == 1:
+    print("bad")
+else:
+    print("ok")
+
+y = True
+if y or int("x") == 1:
+    print("ok2")

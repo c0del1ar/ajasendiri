@@ -1,0 +1,17 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Dog:
+    name: str
+
+fuc (d: Dog) speak(prefix: str) -> str:
+    return prefix + " " + d.name
+
+fuc (d: Dog) bark() -> str:
+    return "woof"
+
+fuc test(s: Speaker) -> str:
+    return s.bark()
+
+d = Dog("Rex")
+print(test(d))

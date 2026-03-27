@@ -1,0 +1,10 @@
+ch = chan(1)
+send(ch, 1)
+
+select:
+    case send(ch, 2):
+        print("sent")
+    default:
+        print("full")
+
+print(recv(ch))

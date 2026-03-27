@@ -1,0 +1,5 @@
+import (
+    "modules/setutil"
+)
+
+print(setutil.fromRange("1", 5))

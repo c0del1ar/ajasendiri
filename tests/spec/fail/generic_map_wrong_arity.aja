@@ -1,0 +1,2 @@
+fuc bad(m: map[str]) -> void:
+    return

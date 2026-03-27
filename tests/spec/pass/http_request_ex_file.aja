@@ -1,0 +1,17 @@
+import (
+    "http"
+    "fs"
+)
+
+path = "/tmp/aja_http_request_ex_file.txt"
+fs.write(path, "hello-ex")
+
+r = http.requestEx("GET", "file://" + path)
+print(r.status)
+print(r.body)
+print(r.headers["content-type"])
+print(r.headers["content-length"])
+
+r2 = http.requestEx("POST", "file://" + path, "ignored")
+print(r2.status)
+print(r2.body)

@@ -1,0 +1,109 @@
+fuc _startsAt(text: str, part: str, at: int) -> bool:
+    if at < 0:
+        return false
+    n = length(text)
+    m = length(part)
+    if at + m > n:
+        return false
+    return text[at:at+m] == part
+
+fuc _isSpace(ch: str) -> bool:
+    return ch == " " or ch == "\t" or ch == "\n"
+
+fuc startsWith(text: str, prefix: str) -> bool:
+    if length(prefix) > length(text):
+        return false
+    return text[0:length(prefix)] == prefix
+
+fuc endsWith(text: str, suffix: str) -> bool:
+    n = length(text)
+    m = length(suffix)
+    if m > n:
+        return false
+    return text[n-m:n] == suffix
+
+fuc indexOf(text: str, needle: str) -> int:
+    m = length(needle)
+    n = length(text)
+    if m == 0:
+        return 0
+    if m > n:
+        return -1
+
+    last = n - m
+    i = 0
+    while i <= last do:
+        if _startsAt(text, needle, i):
+            return i
+        i++
+    return -1
+
+fuc contains(text: str, needle: str) -> bool:
+    return indexOf(text, needle) >= 0
+
+fuc repeat(text: str, n: int) -> str:
+    if n < 0:
+        raiseErr("repeat expects n >= 0")
+    out = ""
+    for i in range(n):
+        out = out + text
+    return out
+
+fuc split(text: str, sep: str) -> list[str]:
+    if length(sep) == 0:
+        raiseErr("split expects non-empty separator")
+
+    parts = []
+    m = length(sep)
+    start = 0
+    i = 0
+    last = length(text) - m
+    while i <= last do:
+        if _startsAt(text, sep, i):
+            parts.append(text[start:i])
+            i = i + m
+            start = i
+        else:
+            i++
+    parts.append(text[start:length(text)])
+    return parts
+
+fuc join(parts: list[str], sep: str) -> str:
+    if length(parts) == 0:
+        return ""
+
+    out = ""
+    for i, p in parts:
+        if i > 0:
+            out = out + sep
+        out = out + p
+    return out
+
+fuc trim(text: str) -> str:
+    n = length(text)
+    start = 0
+    while start < n and _isSpace(text[start:start+1]) do:
+        start++
+
+    stop = n
+    while stop > start and _isSpace(text[stop-1:stop]) do:
+        stop = stop - 1
+
+    return text[start:stop]
+
+fuc replaceAll(text: str, old: str, newValue: str) -> str:
+    if length(old) == 0:
+        raiseErr("replaceAll expects non-empty old")
+    return join(split(text, old), newValue)
+
+export (
+    startsWith,
+    endsWith,
+    indexOf,
+    contains,
+    repeat,
+    split,
+    join,
+    trim,
+    replaceAll
+)

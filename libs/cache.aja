@@ -1,0 +1,98 @@
+import (
+    "time"
+)
+
+type Cache:
+    values: map
+    expiresAt: map
+
+fuc new() -> Cache:
+    return Cache({}, {})
+
+fuc set(c: Cache, key: str, value: str, ttlMs: int = 0) -> void:
+    if ttlMs < 0:
+        raiseErr("cache ttlMs must be >= 0")
+
+    values = c.values
+    values[key] = value
+    c.values = values
+    if ttlMs == 0:
+        exp = c.expiresAt
+        if exp.has(key):
+            exp.delete(key)
+            c.expiresAt = exp
+        return
+
+    exp = c.expiresAt
+    exp[key] = time.now_ms() + ttlMs
+    c.expiresAt = exp
+
+fuc has(c: Cache, key: str) -> bool:
+    values = c.values
+    if not values.has(key):
+        return false
+
+    exp = c.expiresAt
+    if exp.has(key):
+        if exp[key] <= time.now_ms():
+            values.delete(key)
+            exp.delete(key)
+            c.values = values
+            c.expiresAt = exp
+            return false
+
+    return true
+
+fuc get(c: Cache, key: str, fallback: str = "") -> str:
+    if has(c, key):
+        values = c.values
+        return values[key]
+    return fallback
+
+fuc delete(c: Cache, key: str) -> void:
+    values = c.values
+    exp = c.expiresAt
+    if values.has(key):
+        values.delete(key)
+    if exp.has(key):
+        exp.delete(key)
+    c.values = values
+    c.expiresAt = exp
+
+fuc ttl(c: Cache, key: str) -> int:
+    if not has(c, key):
+        return -1
+    exp = c.expiresAt
+    if not exp.has(key):
+        return -1
+
+    left = exp[key] - time.now_ms()
+    if left < 0:
+        delete(c, key)
+        return -1
+    return left
+
+fuc cleanup(c: Cache) -> int:
+    removed = 0
+    now = time.now_ms()
+    values = c.values
+    exp = c.expiresAt
+    for key in exp.keys():
+        if exp[key] <= now:
+            if values.has(key):
+                values.delete(key)
+            exp.delete(key)
+            removed = removed + 1
+    c.values = values
+    c.expiresAt = exp
+    return removed
+
+export (
+    new,
+    set,
+    has,
+    get,
+    delete,
+    ttl,
+    cleanup
+)

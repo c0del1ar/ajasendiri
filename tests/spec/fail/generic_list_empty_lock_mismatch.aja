@@ -1,0 +1,6 @@
+fuc mark_ints(nums: list[int]) -> void:
+    return
+
+nums = []
+mark_ints(nums)
+nums.append("oops")

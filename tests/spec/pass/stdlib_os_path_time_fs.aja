@@ -1,0 +1,36 @@
+import (
+    "fs"
+    "time"
+    "path"
+    "os"
+)
+
+tmpdir = path.join("/tmp", "aja_stdlib_depth_case")
+file = path.join(tmpdir, "hello.txt")
+
+if fs.exists(file):
+    fs.remove(file)
+if fs.exists(tmpdir):
+    fs.remove(tmpdir)
+
+print(path.basename(file))
+print(path.dirname(file))
+print(path.ext(file))
+
+print(fs.mkdir(tmpdir))
+print(fs.write(file, "hello"))
+print(fs.append(file, " world"))
+print(fs.read(file))
+
+print(os.setenv("AJA_STD_DEPTH_KEY", "ok"))
+print(os.getenv("AJA_STD_DEPTH_KEY") == "ok")
+
+before = time.now_ms()
+time.sleep(5)
+after = time.now_ms()
+print(after >= before)
+
+print(fs.remove(file))
+print(fs.remove(tmpdir))
+print(fs.exists(tmpdir))
+print(path.basename(os.cwd()) != "")

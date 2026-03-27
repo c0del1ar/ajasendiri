@@ -1,0 +1,18 @@
+import (
+    "modules/text"
+)
+
+print(text.startsWith("ajasendiri", "aja"))
+print(text.endsWith("ajasendiri", "diri"))
+print(text.repeat("ha", 3))
+print(text.countChar("banana", "a"))
+
+parts = text.splitChar("a,b,c", ",")
+print(length(parts))
+print(parts[0])
+print(parts[1])
+print(parts[2])
+
+single = text.splitChar("abc", ",")
+print(length(single))
+print(single[0])

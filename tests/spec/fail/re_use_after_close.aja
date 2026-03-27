@@ -1,0 +1,7 @@
+import (
+    "modules/re"
+)
+
+r = re.compile("a+")
+r.close()
+print(r.isMatch("aaa"))

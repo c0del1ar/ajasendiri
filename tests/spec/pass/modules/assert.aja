@@ -1,0 +1,41 @@
+fuc fail(message: str) -> void:
+    raiseErr("assert.fail: " + message)
+
+fuc ok(cond: bool, message: str) -> void:
+    if not cond:
+        raiseErr("assert.ok failed: " + message)
+
+fuc eqInt(actual: int, expected: int, message: str) -> void:
+    if actual != expected:
+        raiseErr("assert.eqInt failed: " + message)
+
+fuc neInt(actual: int, expected: int, message: str) -> void:
+    if actual == expected:
+        raiseErr("assert.neInt failed: " + message)
+
+fuc eqStr(actual: str, expected: str, message: str) -> void:
+    if actual != expected:
+        raiseErr("assert.eqStr failed: " + message)
+
+fuc neStr(actual: str, expected: str, message: str) -> void:
+    if actual == expected:
+        raiseErr("assert.neStr failed: " + message)
+
+fuc eqBool(actual: bool, expected: bool, message: str) -> void:
+    if actual != expected:
+        raiseErr("assert.eqBool failed: " + message)
+
+fuc neBool(actual: bool, expected: bool, message: str) -> void:
+    if actual == expected:
+        raiseErr("assert.neBool failed: " + message)
+
+export (
+    fail,
+    ok,
+    eqInt,
+    neInt,
+    eqStr,
+    neStr,
+    eqBool,
+    neBool
+)

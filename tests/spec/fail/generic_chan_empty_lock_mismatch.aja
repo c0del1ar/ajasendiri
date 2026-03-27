@@ -1,0 +1,6 @@
+fuc mark_int(ch: chan[int]) -> void:
+    return
+
+ch = chan()
+mark_int(ch)
+send(ch, "oops")

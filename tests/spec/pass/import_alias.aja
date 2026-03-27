@@ -1,0 +1,5 @@
+import ("math" as m)
+import ("modules/cons_test" as c)
+
+print(m.sqrt(9))
+print(c.ally("L", "R"))

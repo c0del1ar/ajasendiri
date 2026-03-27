@@ -1,0 +1,36 @@
+{
+  "name": "ajasendiri-syntax",
+  "displayName": "Ajasendiri Syntax",
+  "description": "Syntax highlighting and language configuration for Ajasendiri (.aja)",
+  "version": "0.1.0",
+  "publisher": "ajasendiri",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "ajasendiri",
+        "aliases": [
+          "Ajasendiri",
+          "aja"
+        ],
+        "extensions": [
+          ".aja"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ajasendiri",
+        "scopeName": "source.ajasendiri",
+        "path": "./syntaxes/ajasendiri.tmLanguage.json"
+      }
+    ]
+  }
+}

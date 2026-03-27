@@ -1,0 +1,7 @@
+fuc inner() -> int:
+    return int("bad")
+
+fuc outer() -> int:
+    return inner()
+
+print(outer())

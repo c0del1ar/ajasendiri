@@ -1,0 +1,5 @@
+import (
+    "http"
+)
+
+print(http.request(url = "file:///tmp/aja_builtin_named_args.txt", body = "x"))

@@ -1,0 +1,4 @@
+fuc add(a: int, b: int = 2) -> int:
+    return a + b
+
+print(add())

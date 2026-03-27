@@ -1,0 +1,9 @@
+fuc produce(ch: chan[int]) -> void:
+    send(ch, 7)
+
+fuc consume(ch: chan[int]) -> int:
+    return recv(ch)
+
+ch = chan()
+produce(ch)
+print(consume(ch))

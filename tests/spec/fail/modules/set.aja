@@ -1,0 +1,68 @@
+fuc new() -> map:
+    return {}
+
+fuc fromList(items: list[str]) -> map:
+    out = {}
+    for item in items:
+        out[item] = true
+    return out
+
+fuc add(s: map, item: str) -> void:
+    s[item] = true
+
+fuc remove(s: map, item: str) -> bool:
+    if s.has(item):
+        s.delete(item)
+        return true
+    return false
+
+fuc has(s: map, item: str) -> bool:
+    return s.has(item)
+
+fuc size(s: map) -> int:
+    return length(s)
+
+fuc toList(s: map) -> list[str]:
+    return s.keys()
+
+fuc union(left: map, right: map) -> map:
+    out = {}
+    for key in left.keys():
+        out[key] = true
+    for key in right.keys():
+        out[key] = true
+    return out
+
+fuc intersect(left: map, right: map) -> map:
+    out = {}
+    for key in left.keys():
+        if right.has(key):
+            out[key] = true
+    return out
+
+fuc difference(left: map, right: map) -> map:
+    out = {}
+    for key in left.keys():
+        if not right.has(key):
+            out[key] = true
+    return out
+
+fuc containsAll(s: map, items: list[str]) -> bool:
+    for item in items:
+        if not s.has(item):
+            return false
+    return true
+
+export (
+    new,
+    fromList,
+    add,
+    remove,
+    has,
+    size,
+    toList,
+    union,
+    intersect,
+    difference,
+    containsAll
+)

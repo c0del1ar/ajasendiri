@@ -1,0 +1,11 @@
+import (
+    {
+        ally
+        delly
+        counter
+    } from "cons"
+)
+
+print(ally("Mio", "Lyn"))
+print(delly("Hey"))
+print(counter)

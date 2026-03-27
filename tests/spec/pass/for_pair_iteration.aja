@@ -1,0 +1,17 @@
+nums = [10, 20, 30]
+idx_sum = 0
+val_sum = 0
+for i, v in nums:
+    idx_sum = idx_sum + i
+    val_sum = val_sum + v
+print(idx_sum)
+print(val_sum)
+
+m = {"a": 1, "b": 2}
+keys_len = 0
+vals = 0
+for k, v in m:
+    keys_len = keys_len + length(k)
+    vals = vals + v
+print(keys_len)
+print(vals)

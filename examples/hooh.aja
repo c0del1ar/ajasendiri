@@ -1,0 +1,4 @@
+b = 0
+for a in range(10):
+    b++
+print(b)

@@ -1,0 +1,37 @@
+import (
+    "modules/set"
+)
+
+s = set.new()
+set.add(s, "a")
+set.add(s, "b")
+set.add(s, "b")
+
+print(set.has(s, "a"))
+print(set.has(s, "z"))
+print(set.size(s))
+print(set.remove(s, "b"))
+print(set.remove(s, "b"))
+print(set.size(s))
+
+base = set.toList(s)
+sort(base)
+print(base)
+
+u = set.union(set.fromList(["a", "b"]), set.fromList(["b", "c"]))
+uList = set.toList(u)
+sort(uList)
+print(uList)
+
+i = set.intersect(set.fromList(["a", "b"]), set.fromList(["b", "c"]))
+iList = set.toList(i)
+sort(iList)
+print(iList)
+
+d = set.difference(set.fromList(["a", "b"]), set.fromList(["b", "c"]))
+dList = set.toList(d)
+sort(dList)
+print(dList)
+
+print(set.containsAll(u, ["a", "c"]))
+print(set.containsAll(u, ["a", "x"]))

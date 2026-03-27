@@ -1,0 +1,22 @@
+fuc add(a: int, b: int) -> int:
+    total = a + b
+    return total
+
+fuc shout(name: string) -> string:
+    msg = "Hello, " + name
+    return msg
+
+name = "Aja"
+print(shout(name))
+
+x = add(10, 20)
+print(x)
+
+speed = 3.5
+speed = speed + 1.2
+print(speed)
+
+total = 0
+for i in range(1, 6):
+    total = total + i
+print(total)

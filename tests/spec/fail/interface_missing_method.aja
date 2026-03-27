@@ -1,0 +1,11 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Rock:
+    name: str
+
+fuc talk(s: Speaker) -> str:
+    return s.speak("Hi")
+
+r = Rock("Stone")
+print(talk(r))

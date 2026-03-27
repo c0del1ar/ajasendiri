@@ -1,0 +1,5 @@
+fuc maker() -> func(int) -> int:
+    return fuc(s: str) -> str: s
+
+f = maker()
+print("never")

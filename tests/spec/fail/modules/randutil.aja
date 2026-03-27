@@ -1,0 +1,47 @@
+import (
+    "rand"
+)
+
+imut _alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+fuc choiceStr(items: list[str]) -> str:
+    if length(items) == 0:
+        raiseErr("choiceStr expects non-empty list")
+    idx = rand.int(0, length(items) - 1)
+    return items[idx]
+
+fuc randInts(count: int, min: int, max: int) -> list[int]:
+    if count < 0:
+        raiseErr("randInts count must be >= 0")
+    out = []
+    for i in range(count):
+        out.append(rand.int(min, max))
+    return out
+
+fuc token(size: int) -> str:
+    if size < 0:
+        raiseErr("token size must be >= 0")
+    out = ""
+    for i in range(size):
+        idx = rand.int(0, length(_alphabet) - 1)
+        out = out + _alphabet[idx:idx+1]
+    return out
+
+fuc shuffleInts(items: list[int]) -> list[int]:
+    out = []
+    for item in items:
+        out.append(item)
+
+    for i in range(length(out) - 1, 0, -1):
+        j = rand.int(0, i)
+        tmp = out[i]
+        out[i] = out[j]
+        out[j] = tmp
+    return out
+
+export (
+    choiceStr,
+    randInts,
+    token,
+    shuffleInts
+)

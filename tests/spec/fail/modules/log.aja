@@ -1,0 +1,22 @@
+fuc line(level: str, message: str) -> str:
+    return "[" + level + "] " + message
+
+fuc debug(message: str) -> void:
+    print(line("DEBUG", message))
+
+fuc info(message: str) -> void:
+    print(line("INFO", message))
+
+fuc warn(message: str) -> void:
+    print(line("WARN", message))
+
+fuc error(message: str) -> void:
+    print(line("ERROR", message))
+
+export (
+    line,
+    debug,
+    info,
+    warn,
+    error
+)

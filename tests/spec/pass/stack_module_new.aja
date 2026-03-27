@@ -1,0 +1,13 @@
+import (
+    "modules/stack"
+)
+
+s = stack.new()
+stack.push(s, "x")
+stack.push(s, "y")
+print(stack.peek(s))
+print(stack.pop(s))
+print(stack.size(s))
+print(stack.isEmpty(s))
+stack.clear(s)
+print(stack.isEmpty(s))

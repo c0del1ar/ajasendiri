@@ -1,0 +1,6 @@
+import (
+    "modules/set"
+)
+
+s = set.new()
+set.add(s, 1)

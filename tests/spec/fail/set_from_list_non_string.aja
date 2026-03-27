@@ -1,0 +1,5 @@
+import (
+    "modules/set"
+)
+
+print(set.fromList([1, 2]))

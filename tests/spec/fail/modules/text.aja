@@ -1,0 +1,49 @@
+fuc startsWith(text: str, prefix: str) -> bool:
+    if length(prefix) > length(text):
+        return false
+    return text[0:length(prefix)] == prefix
+
+fuc endsWith(text: str, suffix: str) -> bool:
+    n = length(text)
+    m = length(suffix)
+    if m > n:
+        return false
+    return text[n-m:n] == suffix
+
+fuc repeat(text: str, n: int) -> str:
+    if n < 0:
+        raiseErr("repeat expects n >= 0")
+    out = ""
+    for i in range(n):
+        out = out + text
+    return out
+
+fuc countChar(text: str, ch: str) -> int:
+    if length(ch) != 1:
+        raiseErr("countChar expects char length 1")
+    total = 0
+    for i in range(length(text)):
+        if text[i:i+1] == ch:
+            total = total + 1
+    return total
+
+fuc splitChar(text: str, sep: str) -> list[str]:
+    if length(sep) != 1:
+        raiseErr("splitChar expects separator length 1")
+
+    out = []
+    start = 0
+    for i in range(length(text)):
+        if text[i:i+1] == sep:
+            out.append(text[start:i])
+            start = i + 1
+    out.append(text[start:length(text)])
+    return out
+
+export (
+    startsWith,
+    endsWith,
+    repeat,
+    countChar,
+    splitChar
+)

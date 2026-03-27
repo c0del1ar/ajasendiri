@@ -1,0 +1,28 @@
+fuc fromRange(start: int, stop: int, step: int = 1) -> map:
+    if step == 0:
+        raiseErr("fromRange step cannot be 0")
+    out = {}
+    for i in range(start, stop, step):
+        out[str(i)] = true
+    return out
+
+fuc isSubset(left: map, right: map) -> bool:
+    for key in left.keys():
+        if not right.has(key):
+            return false
+    return true
+
+fuc equals(left: map, right: map) -> bool:
+    if length(left) != length(right):
+        return false
+    return isSubset(left, right)
+
+fuc toList(s: map) -> list[str]:
+    return s.keys()
+
+export (
+    fromRange,
+    isSubset,
+    equals,
+    toList
+)

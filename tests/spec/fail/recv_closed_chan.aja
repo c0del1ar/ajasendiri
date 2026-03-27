@@ -1,0 +1,3 @@
+ch = chan()
+close(ch)
+recv(ch)

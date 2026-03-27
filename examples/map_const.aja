@@ -1,0 +1,14 @@
+imut app = "ajasendiri"
+print(app)
+
+scores = {"alice": 10, "bob": 20}
+print(scores["alice"])
+scores["alice"] = 11
+print(length(scores))
+
+for i in range(10):
+    if i == 3:
+        continue
+    if i == 6:
+        break
+    print(i)

@@ -1,0 +1,52 @@
+fuc _splitPair(pair: str) -> (str, str):
+    for i in range(length(pair)):
+        if pair[i:i+1] == "=":
+            return pair[0:i], pair[i+1:length(pair)]
+    return pair, ""
+
+fuc encode(params: map) -> str:
+    out = ""
+    first = true
+    for key in params.keys():
+        if not first:
+            out = out + "&"
+        out = out + key + "=" + params[key]
+        first = false
+    return out
+
+fuc parse(text: str) -> map:
+    out = {}
+    current = ""
+
+    for i in range(length(text)):
+        ch = text[i:i+1]
+        if ch == "&":
+            if current != "":
+                k, v = _splitPair(current)
+                out[k] = v
+            current = ""
+        else:
+            current = current + ch
+
+    if current != "":
+        k, v = _splitPair(current)
+        out[k] = v
+
+    return out
+
+fuc withParam(url: str, key: str, value: str) -> str:
+    hasQuery = false
+    for i in range(length(url)):
+        if url[i:i+1] == "?":
+            hasQuery = true
+            break
+
+    if hasQuery:
+        return url + "&" + key + "=" + value
+    return url + "?" + key + "=" + value
+
+export (
+    encode,
+    parse,
+    withParam
+)

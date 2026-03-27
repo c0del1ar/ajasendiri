@@ -1,0 +1,30 @@
+import (
+    "time"
+)
+
+fuc backoffMs(baseMs: int, attempt: int, maxMs: int = 0) -> int:
+    if baseMs < 0:
+        raiseErr("retry baseMs must be >= 0")
+    if attempt < 0:
+        raiseErr("retry attempt must be >= 0")
+    if maxMs < 0:
+        raiseErr("retry maxMs must be >= 0")
+
+    delay = baseMs
+    for i in range(attempt):
+        delay = delay * 2
+
+    if maxMs > 0 and delay > maxMs:
+        return maxMs
+    return delay
+
+fuc wait(baseMs: int, attempt: int, maxMs: int = 0) -> int:
+    delay = backoffMs(baseMs, attempt, maxMs)
+    if delay > 0:
+        time.sleep(delay)
+    return delay
+
+export (
+    backoffMs,
+    wait
+)

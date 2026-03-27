@@ -1,0 +1,13 @@
+scores = {"alice": 10, "bob": 20}
+print(length(scores))
+print(scores["alice"])
+
+scores["alice"] = 15
+scores["charlie"] = 30
+print(scores["alice"])
+print(scores["charlie"])
+
+fuc plus_one(m: map) -> int:
+    return m["alice"] + 1
+
+print(plus_one(scores))

@@ -1,0 +1,6 @@
+fuc mark_scores(scores: map[str, int]) -> void:
+    return
+
+scores = {}
+mark_scores(scores)
+scores["x"] = "oops"

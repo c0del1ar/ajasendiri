@@ -1,0 +1,5 @@
+fuc greet(name: str, *, prefix: str, suffix: str = "!") -> str:
+    return prefix + " " + name + suffix
+
+print(greet("Aja", prefix = "Hi"))
+print(greet("Aja", prefix = "Hello", suffix = "?"))

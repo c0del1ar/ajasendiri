@@ -1,0 +1,73 @@
+import (
+    "http"
+)
+
+type Client:
+    base: str
+
+fuc build(base: str, path: str) -> str:
+    if length(base) == 0:
+        return path
+    if length(path) == 0:
+        return base
+
+    b_last = base[length(base)-1:length(base)]
+    p_first = path[0:1]
+
+    if b_last == "/" and p_first == "/":
+        return base + path[1:length(path)]
+    if b_last != "/" and p_first != "/":
+        return base + "/" + path
+    return base + path
+
+fuc _has_query(url: str) -> bool:
+    for i in range(length(url)):
+        if url[i:i+1] == "?":
+            return true
+    return false
+
+fuc withQuery(url: str, key: str, value: str) -> str:
+    sep = "?"
+    if _has_query(url):
+        sep = "&"
+    return url + sep + key + "=" + value
+
+fuc new(base: str) -> Client:
+    return Client(base)
+
+fuc (c: Client) at(path: str) -> str:
+    return build(c.base, path)
+
+fuc (c: Client) read(path: str) -> str:
+    return http.request("GET", c.at(path))
+
+fuc (c: Client) create(path: str, body: str) -> str:
+    return http.request("POST", c.at(path), body)
+
+fuc (c: Client) replace(path: str, body: str) -> str:
+    return http.request("PUT", c.at(path), body)
+
+fuc (c: Client) drop(path: str) -> str:
+    return http.request("DELETE", c.at(path))
+
+fuc (c: Client) send(method: str, path: str, body: str) -> str:
+    return http.request(method, c.at(path), body)
+
+fuc (c: Client) sendNoBody(method: str, path: str) -> str:
+    return http.request(method, c.at(path))
+
+fuc (c: Client) readEx(path: str) -> HttpResponse:
+    return http.requestEx("GET", c.at(path))
+
+fuc (c: Client) sendEx(method: str, path: str, body: str) -> HttpResponse:
+    return http.requestEx(method, c.at(path), body)
+
+fuc (c: Client) sendExNoBody(method: str, path: str) -> HttpResponse:
+    return http.requestEx(method, c.at(path))
+
+export (
+    Client,
+    build,
+    withQuery,
+    new
+)

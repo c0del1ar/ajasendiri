@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+# Shell and docs
+*.sh text eol=lf
+*.rst text eol=lf
+*.md text eol=lf
+
+# C sources
+*.c text eol=lf
+*.h text eol=lf
+
+# Binary artifacts
+ajasendiri binary

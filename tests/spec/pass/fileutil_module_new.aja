@@ -1,0 +1,15 @@
+import (
+    "modules/fileutil"
+)
+
+p = "/tmp/aja_fileutil_new.txt"
+print(fileutil.writeLines(p, ["one", "two"]))
+lines = fileutil.readLines(p)
+print(length(lines))
+print(lines[0])
+print(lines[1])
+
+jp = "/tmp/aja_fileutil_new.json"
+print(fileutil.writeJson(jp, {"a": "b"}))
+jm = fileutil.readJson(jp)
+print(jm["a"])

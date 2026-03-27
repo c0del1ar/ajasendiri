@@ -1,0 +1,17 @@
+import (
+    "http"
+    "fs"
+)
+
+path = "/tmp/aja_http_methods_basic.txt"
+content = "hello-http"
+fs.write(path, content)
+
+# use file:// URL so tests are local and deterministic
+txt = http.request("PUT", "file://" + path, content)
+print(txt)
+print(http.get("file://" + path))
+print(http.post("file://" + path, "x"))
+print(http.put("file://" + path, "y"))
+print(http.delete("file://" + path))
+print(http.request("GET", "file://" + path))

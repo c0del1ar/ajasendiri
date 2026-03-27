@@ -1,0 +1,7 @@
+ch = chan()
+
+select:
+    case recv(ch) as v:
+        print(v)
+    case timeout(5):
+        print("timeout")

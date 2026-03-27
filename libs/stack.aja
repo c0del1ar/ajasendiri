@@ -1,0 +1,55 @@
+type Stack:
+    items: list[str]
+
+fuc new() -> Stack:
+    return Stack([])
+
+fuc fromList(items: list[str]) -> Stack:
+    out = []
+    for item in items:
+        out.append(item)
+    return Stack(out)
+
+fuc push(s: Stack, item: str) -> void:
+    items = s.items
+    items.append(item)
+    s.items = items
+
+fuc pop(s: Stack) -> str:
+    items = s.items
+    if length(items) == 0:
+        raiseErr("stack is empty")
+    out = items.pop()
+    s.items = items
+    return out
+
+fuc peek(s: Stack) -> str:
+    items = s.items
+    if length(items) == 0:
+        raiseErr("stack is empty")
+    return items[length(items) - 1]
+
+fuc size(s: Stack) -> int:
+    items = s.items
+    return length(items)
+
+fuc isEmpty(s: Stack) -> bool:
+    items = s.items
+    return length(items) == 0
+
+fuc clear(s: Stack) -> void:
+    items = s.items
+    while length(items) > 0 do:
+        items.pop()
+    s.items = items
+
+export (
+    new,
+    fromList,
+    push,
+    pop,
+    peek,
+    size,
+    isEmpty,
+    clear
+)

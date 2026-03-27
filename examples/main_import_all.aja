@@ -1,0 +1,7 @@
+import (
+    "cons"
+)
+
+print(cons.ally("Aria", "Nox"))
+print(cons.delly("Hello"))
+print(cons.counter)

@@ -1,0 +1,12 @@
+sum = 0
+for i in range(10):
+    if i == 2:
+        continue
+    if i == 5:
+        break
+    sum = sum + i
+
+print(sum)
+
+imut limit = 7
+print(limit)

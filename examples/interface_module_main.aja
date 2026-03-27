@@ -1,0 +1,12 @@
+import (
+    {
+        Speaker
+        make
+    } from "interface_module_lib"
+)
+
+fuc greet(s: Speaker) -> str:
+    return s.speak("Hi")
+
+x = make("Aja")
+print(greet(x))

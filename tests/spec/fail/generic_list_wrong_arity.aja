@@ -1,0 +1,2 @@
+fuc bad(nums: list[int, int]) -> void:
+    return

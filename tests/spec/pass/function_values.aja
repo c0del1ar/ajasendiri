@@ -1,0 +1,19 @@
+fuc add(a: int, b: int) -> int:
+    return a + b
+
+fn = add
+print(fn(2, 5))
+
+inc = fuc(x: int) -> int: x + 1
+print(inc(10))
+
+fuc apply(cb: func, x: int) -> int:
+    return cb(x)
+
+print(apply(inc, 3))
+
+fuc make_adder(base: int) -> func:
+    return fuc(x: int) -> int: x + base
+
+plus7 = make_adder(7)
+print(plus7(1))

@@ -1,0 +1,16 @@
+import (
+    "modules/randutil"
+    "rand"
+)
+
+rand.seed(123)
+tok = randutil.token(6)
+print(length(tok))
+opts = ["x", "y"]
+picked = randutil.choiceStr(opts)
+print(opts.has(picked))
+ri = randutil.randInts(3, 1, 10)
+print(length(ri))
+sh = randutil.shuffleInts([1, 2, 3])
+print(length(sh))
+print(sh.has(1) and sh.has(2) and sh.has(3))

@@ -1,0 +1,16 @@
+export (
+    ally,
+    delly,
+    counter
+)
+
+fuc ally(hisname: str, hername: str) -> str:
+    result = hisname + " & " + hername
+    return result
+
+fuc delly(his: str) -> str:
+    out = his + "!"
+    return out
+
+counter = 7
+

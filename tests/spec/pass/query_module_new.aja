@@ -1,0 +1,9 @@
+import (
+    "modules/query"
+)
+
+qs = query.encode({"a": "1", "b": "2"})
+parsed = query.parse(qs)
+print(parsed["a"] == "1" and parsed["b"] == "2")
+print(query.withParam("https://x", "a", "1"))
+print(query.withParam("https://x?b=2", "a", "1"))

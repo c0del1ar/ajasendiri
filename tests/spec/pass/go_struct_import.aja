@@ -1,0 +1,6 @@
+import (
+    "modules/person"
+)
+
+p = person.Person("Mio")
+print(p.label("@"))

@@ -1,0 +1,218 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Ajasendiri",
+  "scopeName": "source.ajasendiri",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#functionDecl"
+    },
+    {
+      "include": "#typeDecl"
+    },
+    {
+      "include": "#controlKeywords"
+    },
+    {
+      "include": "#moduleKeywords"
+    },
+    {
+      "include": "#modifiers"
+    },
+    {
+      "include": "#booleanLiterals"
+    },
+    {
+      "include": "#builtinFunctions"
+    },
+    {
+      "include": "#moduleNames"
+    },
+    {
+      "include": "#typeNames"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.ajasendiri",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.ajasendiri",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.ajasendiri"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.ajasendiri"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.ajasendiri",
+              "match": "\\\\(?:[nt\"\\\\])"
+            }
+          ]
+        }
+      ]
+    },
+    "functionDecl": {
+      "patterns": [
+        {
+          "match": "\\b(fuc)\\s+(?:\\([A-Za-z_][A-Za-z0-9_]*\\s*:\\s*[^)]+\\)\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "keyword.control.function.ajasendiri"
+            },
+            "2": {
+              "name": "entity.name.function.ajasendiri"
+            }
+          }
+        }
+      ]
+    },
+    "typeDecl": {
+      "patterns": [
+        {
+          "match": "\\b(type|interface)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.type.ajasendiri"
+            },
+            "2": {
+              "name": "entity.name.type.ajasendiri"
+            }
+          }
+        }
+      ]
+    },
+    "controlKeywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.ajasendiri",
+          "match": "\\b(?:if|elif|else|for|in|while|do|return|break|continue|defer|kostroutine|select|match|case|default|and|or|not)\\b"
+        }
+      ]
+    },
+    "moduleKeywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.import.ajasendiri",
+          "match": "\\b(?:import|export|from|as)\\b"
+        }
+      ]
+    },
+    "modifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.ajasendiri",
+          "match": "\\bimut\\b"
+        }
+      ]
+    },
+    "booleanLiterals": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.ajasendiri",
+          "match": "\\b(?:true|false|True|False)\\b"
+        }
+      ]
+    },
+    "builtinFunctions": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.ajasendiri",
+          "match": "\\b(?:print|input|int|float|str|error|raiseErr|length|sort|range|chan|send|recv|close|trySend|tryRecv|waitAll|timeout)\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "moduleNames": {
+      "patterns": [
+        {
+          "name": "support.class.module.ajasendiri",
+          "match": "\\b(?:math|time|json|fs|http|rand|os|path|re|recore)\\b(?=\\.)"
+        }
+      ]
+    },
+    "typeNames": {
+      "patterns": [
+        {
+          "name": "storage.type.ajasendiri",
+          "match": "\\b(?:int|float|str|string|bool|void|error|list|map|chan|func)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.ajasendiri",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.ajasendiri",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.ajasendiri",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.ajasendiri",
+          "match": "\\+\\+|\\+|-|\\*|/"
+        },
+        {
+          "name": "keyword.operator.comparison.ajasendiri",
+          "match": "==|!=|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.arrow.ajasendiri",
+          "match": "->"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.ajasendiri",
+          "match": "[,:.]"
+        },
+        {
+          "name": "punctuation.section.brackets.begin.ajasendiri",
+          "match": "[\\[{(]"
+        },
+        {
+          "name": "punctuation.section.brackets.end.ajasendiri",
+          "match": "[\\]})]"
+        }
+      ]
+    }
+  }
+}

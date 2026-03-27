@@ -1,0 +1,5 @@
+import (
+    "modules/datetime"
+)
+
+print(datetime.formatIso(-1))

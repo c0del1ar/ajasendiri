@@ -1,0 +1,6 @@
+import (
+    "modules/iface_lib"
+)
+
+who = iface_lib.make("Uli")
+print(who.speak("Yo"))

@@ -1,0 +1,21 @@
+import (
+    "fs"
+    "rand"
+)
+
+path = "/tmp/aja_stdlib_fs_rand.txt"
+print(fs.write(path, "hello"))
+print(fs.exists(path))
+print(fs.read(path))
+
+rand.seed(123)
+a = rand.int(1, 10)
+b = rand.int(1, 10)
+rand.seed(123)
+c = rand.int(1, 10)
+d = rand.int(1, 10)
+print(a == c)
+print(b == d)
+
+r = rand.float()
+print(r >= 0 and r < 1)

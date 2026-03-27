@@ -1,0 +1,14 @@
+fuc greet(name: str, prefix: str = "Hi", suffix: str = "!") -> str:
+    return prefix + ", " + name + suffix
+
+print(greet("Aja"))
+print(greet("Aja", prefix = "Hello"))
+print(greet(name = "Aja", suffix = "?", prefix = "Yo"))
+
+fuc inc_from(base: int, next: int = base + 1) -> int:
+    return next
+
+print(inc_from(10))
+
+fn = greet
+print(fn(name = "Neo"))

@@ -1,0 +1,6 @@
+age = int(input("Age? "))
+score = float(input("Score? "))
+name = str(input("Name? "))
+print("Hello " + name)
+print(age + 1)
+print(score + 0.5)

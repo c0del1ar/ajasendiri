@@ -1,0 +1,5 @@
+fuc sum_values(m: map[str, int]) -> int:
+    return 0
+
+bad = {"a": "x"}
+print(sum_values(bad))

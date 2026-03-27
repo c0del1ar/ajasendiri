@@ -1,0 +1,7 @@
+fuc bad(cb: func(int) -> int) -> int:
+    return cb(1)
+
+fuc echo(s: str) -> str:
+    return s
+
+print(bad(echo))

@@ -1,0 +1,5 @@
+fuc boom() -> void:
+    defer print("cleanup")
+    raiseErr("kaboom")
+
+boom()

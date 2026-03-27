@@ -1,0 +1,10 @@
+import (
+    "modules/cache"
+)
+
+c = cache.new()
+cache.set(c, "k", "v")
+print(cache.get(c, "k"))
+print(cache.has(c, "k"))
+cache.delete(c, "k")
+print(cache.has(c, "k"))

@@ -1,0 +1,15 @@
+nums = [1, 2, 3, 4]
+squares = [x * x for x in nums]
+tail = [x for x in nums if x > 2]
+print(squares)
+print(tail)
+
+pairs = {"a": 1, "b": 2, "c": 3}
+keys = [k for k in pairs]
+print(keys)
+
+mapped = {str(x): x * x for x in nums if x > 1}
+print(mapped)
+
+from_map = {k: k + "!" for k in pairs if k != "b"}
+print(from_map)

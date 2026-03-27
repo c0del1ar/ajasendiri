@@ -1,0 +1,67 @@
+import (
+    "recore"
+)
+
+type Regex:
+    handle: int
+    pattern: str
+    closed: bool
+
+fuc (r: Regex) ensureOpen() -> void:
+    if r.closed:
+        raiseErr("re: closed regex")
+
+fuc (r: Regex) close() -> void:
+    if r.closed:
+        return
+    recore.freePattern(r.handle)
+    r.closed = true
+
+fuc (r: Regex) isMatch(text: str) -> bool:
+    r.ensureOpen()
+    return recore.isMatchHandle(r.handle, text)
+
+fuc (r: Regex) search(text: str) -> map[str, int]:
+    r.ensureOpen()
+    return recore.searchHandle(r.handle, text)
+
+fuc (r: Regex) replaceAll(text: str, replacement: str) -> str:
+    r.ensureOpen()
+    return recore.replaceAllHandle(r.handle, text, replacement)
+
+fuc (r: Regex) split(text: str) -> list[str]:
+    r.ensureOpen()
+    return recore.splitHandle(r.handle, text)
+
+fuc compile(pattern: str) -> Regex:
+    handle = recore.compilePattern(pattern)
+    return Regex(handle, pattern, false)
+
+fuc isMatch(pattern: str, text: str) -> bool:
+    r = compile(pattern)
+    defer r.close()
+    return r.isMatch(text)
+
+fuc search(pattern: str, text: str) -> map[str, int]:
+    r = compile(pattern)
+    defer r.close()
+    return r.search(text)
+
+fuc replaceAll(pattern: str, text: str, replacement: str) -> str:
+    r = compile(pattern)
+    defer r.close()
+    return r.replaceAll(text, replacement)
+
+fuc split(pattern: str, text: str) -> list[str]:
+    r = compile(pattern)
+    defer r.close()
+    return r.split(text)
+
+export (
+    Regex,
+    compile,
+    isMatch,
+    search,
+    replaceAll,
+    split
+)

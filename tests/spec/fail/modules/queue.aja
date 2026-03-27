@@ -1,0 +1,59 @@
+type Queue:
+    items: list[str]
+
+fuc new() -> Queue:
+    return Queue([])
+
+fuc fromList(items: list[str]) -> Queue:
+    out = []
+    for item in items:
+        out.append(item)
+    return Queue(out)
+
+fuc enqueue(q: Queue, item: str) -> void:
+    items = q.items
+    items.append(item)
+    q.items = items
+
+fuc dequeue(q: Queue) -> str:
+    items = q.items
+    if length(items) == 0:
+        raiseErr("queue is empty")
+
+    first = items[0]
+    rest = []
+    for i in range(1, length(items)):
+        rest.append(items[i])
+    q.items = rest
+    return first
+
+fuc peek(q: Queue) -> str:
+    items = q.items
+    if length(items) == 0:
+        raiseErr("queue is empty")
+    return items[0]
+
+fuc size(q: Queue) -> int:
+    items = q.items
+    return length(items)
+
+fuc isEmpty(q: Queue) -> bool:
+    items = q.items
+    return length(items) == 0
+
+fuc clear(q: Queue) -> void:
+    items = q.items
+    while length(items) > 0 do:
+        items.pop()
+    q.items = items
+
+export (
+    new,
+    fromList,
+    enqueue,
+    dequeue,
+    peek,
+    size,
+    isEmpty,
+    clear
+)

@@ -1,0 +1,5 @@
+fuc total(nums: list[int]) -> int:
+    return 0
+
+bad = ["x"]
+print(total(bad))

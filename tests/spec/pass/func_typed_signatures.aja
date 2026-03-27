@@ -1,0 +1,18 @@
+fuc plus1(x: int) -> int:
+    return x + 1
+
+fuc apply(cb: func(int) -> int, x: int) -> int:
+    return cb(x)
+
+print(apply(plus1, 4))
+
+fuc maker() -> func(int) -> int:
+    return fuc(n: int) -> int: n + 2
+
+f = maker()
+print(f(5))
+
+fuc apply_any(cb: func, x: int) -> int:
+    return cb(x)
+
+print(apply_any(plus1, 8))

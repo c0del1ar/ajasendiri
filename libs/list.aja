@@ -1,0 +1,48 @@
+fuc clone(items: list) -> list:
+    out = []
+    for item in items:
+        out.append(item)
+    return out
+
+fuc reverse(items: list) -> list:
+    out = []
+    for i in range(length(items)-1, -1, -1):
+        out.append(items[i])
+    return out
+
+fuc sumInt(items: list[int]) -> int:
+    total = 0
+    for item in items:
+        total = total + item
+    return total
+
+fuc maxInt(items: list[int]) -> int:
+    if length(items) == 0:
+        raiseErr("maxInt expects non-empty list")
+    best = items[0]
+    for i in range(1, length(items)):
+        if items[i] > best:
+            best = items[i]
+    return best
+
+fuc findIndexInt(items: list[int], needle: int) -> int:
+    for i, item in items:
+        if item == needle:
+            return i
+    return -1
+
+fuc uniqueInt(items: list[int]) -> list[int]:
+    out = []
+    for item in items:
+        if not out.has(item):
+            out.append(item)
+    return out
+
+export (
+    clone,
+    reverse,
+    sumInt,
+    maxInt,
+    findIndexInt,
+    uniqueInt
+)

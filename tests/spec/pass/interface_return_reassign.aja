@@ -1,0 +1,23 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Person:
+    name: str
+
+type Robot:
+    id: int
+
+fuc (p: Person) speak(prefix: str) -> str:
+    return prefix + " " + p.name
+
+fuc (r: Robot) speak(prefix: str) -> str:
+    return prefix + " R" + str(r.id)
+
+fuc make_person(name: str) -> Speaker:
+    p = Person(name)
+    return p
+
+speaker = make_person("Ari")
+print(speaker.speak("Hello"))
+speaker = Robot(7)
+print(speaker.speak("Hello"))

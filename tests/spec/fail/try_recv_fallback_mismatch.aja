@@ -1,0 +1,4 @@
+ch = chan()
+send(ch, 1)
+recv(ch)
+tryRecv(ch, "x")

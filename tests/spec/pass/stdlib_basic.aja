@@ -1,0 +1,21 @@
+import (
+    "math"
+    "time"
+    {
+        encode
+        decode
+    } from "json"
+)
+
+print(math.pi > 3.14)
+print(math.abs(-4))
+print(math.sqrt(9))
+print(math.min(2, 5))
+print(math.max(2, 5))
+print(time.now_unix() > 0)
+
+obj = {"a": 1, "b": 2}
+txt = encode(obj)
+print(txt)
+round = decode(txt)
+print(round["a"])

@@ -1,0 +1,15 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Person:
+    name: str
+
+fuc (p: Person) speak(prefix: str) -> str:
+    return prefix + " " + p.name
+
+fuc make() -> Speaker:
+    p = Person("Ana")
+    return p
+
+s = make()
+print(s.name)

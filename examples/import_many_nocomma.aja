@@ -1,0 +1,6 @@
+import (
+    "cons"
+    "oneline_mod"
+)
+print(cons.counter)
+print(oneline_mod.hi("aja"))

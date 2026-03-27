@@ -1,0 +1,192 @@
+import (
+    "time"
+)
+
+fuc _divInt(n: int, d: int) -> int:
+    if d <= 0:
+        raiseErr("_divInt expects d > 0")
+    if n < 0:
+        raiseErr("_divInt expects n >= 0")
+    return int(float(n) / float(d))
+
+fuc _modInt(n: int, d: int) -> int:
+    return n - (_divInt(n, d) * d)
+
+fuc _isDivisible(n: int, d: int) -> bool:
+    return _modInt(n, d) == 0
+
+fuc _isLeapYear(year: int) -> bool:
+    if _isDivisible(year, 400):
+        return true
+    if _isDivisible(year, 100):
+        return false
+    return _isDivisible(year, 4)
+
+fuc _daysInMonth(year: int, month: int) -> int:
+    if month == 2:
+        if _isLeapYear(year):
+            return 29
+        return 28
+
+    if month == 4 or month == 6 or month == 9 or month == 11:
+        return 30
+
+    return 31
+
+fuc _daysBeforeYear(targetYear: int) -> int:
+    days = 0
+    y = 1970
+    while y < targetYear do:
+        days = days + 365
+        if _isLeapYear(y):
+            days++
+        y++
+    return days
+
+fuc _daysBeforeMonth(year: int, targetMonth: int) -> int:
+    days = 0
+    m = 1
+    while m < targetMonth do:
+        days = days + _daysInMonth(year, m)
+        m++
+    return days
+
+fuc _isDigit(ch: str) -> bool:
+    return ch == "0" or ch == "1" or ch == "2" or ch == "3" or ch == "4" or ch == "5" or ch == "6" or ch == "7" or ch == "8" or ch == "9"
+
+fuc _expectDigits(text: str, start: int, count: int) -> void:
+    i = start
+    stop = start + count
+    while i < stop do:
+        if not _isDigit(text[i:i+1]):
+            raiseErr("parseIso expects digits at fixed positions")
+        i++
+
+fuc _pad2(n: int) -> str:
+    if n < 10:
+        return "0" + str(n)
+    return str(n)
+
+fuc _pad4(n: int) -> str:
+    if n < 10:
+        return "000" + str(n)
+    if n < 100:
+        return "00" + str(n)
+    if n < 1000:
+        return "0" + str(n)
+    return str(n)
+
+fuc nowUnixSec() -> int:
+    return time.now_unix()
+
+fuc nowMs() -> int:
+    return time.now_ms()
+
+fuc toUnixSec(ms: int) -> int:
+    if ms < 0:
+        raiseErr("toUnixSec expects ms >= 0")
+    return _divInt(ms, 1000)
+
+fuc fromUnixSec(sec: int) -> int:
+    if sec < 0:
+        raiseErr("fromUnixSec expects sec >= 0")
+    return sec * 1000
+
+fuc addSeconds(ms: int, sec: int) -> int:
+    return ms + (sec * 1000)
+
+fuc diffSeconds(aMs: int, bMs: int) -> int:
+    return int(float(aMs - bMs) / 1000.0)
+
+fuc formatIso(ms: int) -> str:
+    if ms < 0:
+        raiseErr("formatIso expects ms >= 0")
+
+    totalSec = _divInt(ms, 1000)
+    days = _divInt(totalSec, 86400)
+    daySec = _modInt(totalSec, 86400)
+
+    hour = _divInt(daySec, 3600)
+    left = daySec - (hour * 3600)
+    minute = _divInt(left, 60)
+    second = left - (minute * 60)
+
+    year = 1970
+    while true do:
+        dayCount = 365
+        if _isLeapYear(year):
+            dayCount++
+
+        if days >= dayCount:
+            days = days - dayCount
+            year++
+        else:
+            break
+
+    month = 1
+    while true do:
+        mDays = _daysInMonth(year, month)
+        if days >= mDays:
+            days = days - mDays
+            month++
+        else:
+            break
+
+    day = days + 1
+
+    return _pad4(year) + "-" + _pad2(month) + "-" + _pad2(day) + "T" + _pad2(hour) + ":" + _pad2(minute) + ":" + _pad2(second) + "Z"
+
+fuc parseIso(text: str) -> int:
+    if length(text) != 20:
+        raiseErr("parseIso expects 'YYYY-MM-DDTHH:MM:SSZ'")
+
+    if text[4:5] != "-" or text[7:8] != "-" or text[10:11] != "T" or text[13:14] != ":" or text[16:17] != ":" or text[19:20] != "Z":
+        raiseErr("parseIso expects 'YYYY-MM-DDTHH:MM:SSZ'")
+
+    _expectDigits(text, 0, 4)
+    _expectDigits(text, 5, 2)
+    _expectDigits(text, 8, 2)
+    _expectDigits(text, 11, 2)
+    _expectDigits(text, 14, 2)
+    _expectDigits(text, 17, 2)
+
+    year = int(text[0:4])
+    month = int(text[5:7])
+    day = int(text[8:10])
+    hour = int(text[11:13])
+    minute = int(text[14:16])
+    second = int(text[17:19])
+
+    if year < 1970:
+        raiseErr("parseIso year must be >= 1970")
+    if month < 1 or month > 12:
+        raiseErr("parseIso invalid month")
+
+    maxDay = _daysInMonth(year, month)
+    if day < 1 or day > maxDay:
+        raiseErr("parseIso invalid day for month")
+
+    if hour < 0 or hour > 23:
+        raiseErr("parseIso invalid hour")
+    if minute < 0 or minute > 59:
+        raiseErr("parseIso invalid minute")
+    if second < 0 or second > 59:
+        raiseErr("parseIso invalid second")
+
+    days = _daysBeforeYear(year)
+    days = days + _daysBeforeMonth(year, month)
+    days = days + (day - 1)
+
+    totalSec = (days * 86400) + (hour * 3600) + (minute * 60) + second
+    return totalSec * 1000
+
+export (
+    nowUnixSec,
+    nowMs,
+    toUnixSec,
+    fromUnixSec,
+    addSeconds,
+    diffSeconds,
+    formatIso,
+    parseIso
+)

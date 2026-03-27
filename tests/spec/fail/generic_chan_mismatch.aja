@@ -1,0 +1,6 @@
+fuc want_text(ch: chan[str]) -> void:
+    send(ch, "ok")
+
+ch = chan()
+send(ch, 1)
+want_text(ch)

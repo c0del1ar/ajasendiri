@@ -1,0 +1,5 @@
+import (
+    "modules/validate"
+)
+
+validate.require(false, "need true")

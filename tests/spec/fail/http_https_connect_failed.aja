@@ -1,0 +1,5 @@
+import (
+    "http"
+)
+
+print(http.get("https://this-host-should-not-exist.invalid"))

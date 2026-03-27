@@ -1,0 +1,5 @@
+import (
+    "rand"
+)
+
+print(rand.int(1, min = 1))

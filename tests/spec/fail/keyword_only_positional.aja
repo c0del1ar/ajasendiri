@@ -1,0 +1,4 @@
+fuc greet(name: str, *, prefix: str) -> str:
+    return prefix + " " + name
+
+print(greet("Aja", "Hi"))

@@ -1,0 +1,13 @@
+import (
+    "modules/queue"
+)
+
+q = queue.new()
+queue.enqueue(q, "a")
+queue.enqueue(q, "b")
+print(queue.peek(q))
+print(queue.dequeue(q))
+print(queue.size(q))
+print(queue.isEmpty(q))
+queue.clear(q)
+print(queue.isEmpty(q))

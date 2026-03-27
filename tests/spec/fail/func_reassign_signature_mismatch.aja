@@ -1,0 +1,2 @@
+f = fuc(x: int) -> int: x + 1
+f = fuc(x: str) -> str: x

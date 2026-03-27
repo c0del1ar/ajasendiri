@@ -1,0 +1,22 @@
+fuc sample() -> int:
+    defer print("d1")
+    defer print("d2")
+    print("body")
+    return 7
+
+print(sample())
+
+fuc no_ret() -> void:
+    defer print("end")
+    print("work")
+
+no_ret()
+
+fuc pair(x: int) -> (int, error):
+    defer print("cleanup")
+    if x < 0:
+        return 0, error("bad")
+    return x, error()
+
+a, err = pair(-1)
+print(str(err))

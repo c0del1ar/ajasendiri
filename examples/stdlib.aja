@@ -1,0 +1,18 @@
+import (
+    "math"
+    "time"
+    "json"
+)
+
+print(math.pi)
+print(math.abs(-10))
+print(math.sqrt(81))
+print(math.min(3, 7))
+print(math.max(3, 7))
+print(time.now_unix() > 0)
+
+obj = {"a": 1, "b": 2}
+txt = json.encode(obj)
+print(txt)
+back = json.decode(txt)
+print(back["b"])

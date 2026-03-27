@@ -1,0 +1,25 @@
+import (
+    "modules/re"
+)
+
+r = re.compile("ab+")
+print(r.isMatch("xxabbbzz"))
+
+m = r.search("xxabbbzz")
+print(m["start"])
+print(m["end"])
+print(m["length"])
+
+print(r.replaceAll("abxxabbb", "X"))
+
+parts = r.split("zzabyyabbbtt")
+print(length(parts))
+print(parts[0])
+print(parts[1])
+print(parts[2])
+
+r.close()
+
+print(re.isMatch("a+", "caa"))
+m2 = re.search("x+", "abc")
+print(m2["start"])

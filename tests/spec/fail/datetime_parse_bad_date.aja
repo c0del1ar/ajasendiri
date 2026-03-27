@@ -1,0 +1,5 @@
+import (
+    "modules/datetime"
+)
+
+print(datetime.parseIso("2023-02-29T00:00:00Z"))

@@ -1,0 +1,17 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type User:
+    name: str
+
+fuc (u: User) speak(prefix: str) -> str:
+    return prefix + " " + u.name
+
+fuc make(name: str) -> Speaker:
+    u = User(name)
+    return u
+
+export (
+    Speaker,
+    make
+)

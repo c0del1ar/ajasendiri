@@ -1,0 +1,4 @@
+fuc bad() -> void:
+    defer x
+
+bad()

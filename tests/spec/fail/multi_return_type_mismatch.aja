@@ -1,0 +1,4 @@
+fuc bad() -> (int, error):
+    return 1
+
+bad()

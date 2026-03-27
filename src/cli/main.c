@@ -1,0 +1,5 @@
+#include "main/shared_utils_and_dep_parse.c"
+#include "main/project_io_and_registry.c"
+#include "main/repl_debug_format.c"
+#include "main/mmk_core_commands.c"
+#include "main/mmk_advanced_and_main.c"

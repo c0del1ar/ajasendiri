@@ -1,0 +1,2 @@
+if "x" and True:
+    print("x")

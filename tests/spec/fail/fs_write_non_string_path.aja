@@ -1,0 +1,5 @@
+import (
+    "fs"
+)
+
+print(fs.write(1, "x"))

@@ -1,0 +1,7 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+fuc talk(s: Speaker) -> str:
+    return s.speak("Hi")
+
+print(talk(1))

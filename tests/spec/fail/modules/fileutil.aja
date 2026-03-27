@@ -1,0 +1,76 @@
+import (
+    "fs"
+    "json"
+)
+
+fuc readText(path: str) -> str:
+    return fs.read(path)
+
+fuc writeText(path: str, text: str) -> bool:
+    return fs.write(path, text)
+
+fuc appendText(path: str, text: str) -> bool:
+    return fs.append(path, text)
+
+fuc exists(path: str) -> bool:
+    return fs.exists(path)
+
+fuc ensureDir(path: str) -> bool:
+    if fs.exists(path):
+        return true
+    return fs.mkdir(path)
+
+fuc readLines(path: str) -> list[str]:
+    text = fs.read(path)
+    if length(text) == 0:
+        return []
+
+    out = []
+    current = ""
+    for i in range(length(text)):
+        ch = text[i:i+1]
+        if ch == "\n":
+            out.append(current)
+            current = ""
+        else:
+            current = current + ch
+
+    if current != "":
+        out.append(current)
+    return out
+
+fuc writeLines(path: str, lines: list[str]) -> bool:
+    out = ""
+    for i, line in lines:
+        if i > 0:
+            out = out + "\n"
+        out = out + line
+    return fs.write(path, out)
+
+fuc appendLine(path: str, line: str) -> bool:
+    if not fs.exists(path):
+        return fs.write(path, line)
+
+    prev = fs.read(path)
+    if length(prev) == 0:
+        return fs.write(path, line)
+    return fs.append(path, "\n" + line)
+
+fuc readJson(path: str) -> map:
+    return json.decode(fs.read(path))
+
+fuc writeJson(path: str, value: map) -> bool:
+    return fs.write(path, json.encode(value))
+
+export (
+    readText,
+    writeText,
+    appendText,
+    exists,
+    ensureDir,
+    readLines,
+    writeLines,
+    appendLine,
+    readJson,
+    writeJson
+)

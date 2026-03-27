@@ -1,0 +1,13 @@
+fuc total(nums: list[int]) -> int:
+    sum = 0
+    for n in nums:
+        sum = sum + n
+    return sum
+
+vals = [1, 2, 3]
+print(total(vals))
+
+empty = []
+print(total(empty))
+empty.append(5)
+print(total(empty))

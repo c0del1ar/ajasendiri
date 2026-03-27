@@ -1,0 +1,4 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+s = Speaker()

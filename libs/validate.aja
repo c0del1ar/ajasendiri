@@ -1,0 +1,82 @@
+fuc _startsWith(text: str, prefix: str) -> bool:
+    if length(prefix) > length(text):
+        return false
+    return text[0:length(prefix)] == prefix
+
+fuc _isDigit(ch: str) -> bool:
+    return ch == "0" or ch == "1" or ch == "2" or ch == "3" or ch == "4" or ch == "5" or ch == "6" or ch == "7" or ch == "8" or ch == "9"
+
+fuc isEmail(text: str) -> bool:
+    if length(text) < 3:
+        return false
+
+    atPos = -1
+    for i in range(length(text)):
+        ch = text[i:i+1]
+        if ch == " " or ch == "\t" or ch == "\n":
+            return false
+        if ch == "@":
+            if atPos != -1:
+                return false
+            atPos = i
+
+    if atPos <= 0 or atPos >= length(text)-1:
+        return false
+
+    hasDot = false
+    for i in range(atPos + 1, length(text)):
+        if text[i:i+1] == ".":
+            hasDot = true
+    return hasDot
+
+fuc isUrl(text: str) -> bool:
+    return _startsWith(text, "http://") or _startsWith(text, "https://") or _startsWith(text, "file://")
+
+fuc isNumber(text: str) -> bool:
+    n = length(text)
+    if n == 0:
+        return false
+
+    i = 0
+    first = text[0:1]
+    if first == "-" or first == "+":
+        i = 1
+    if i == n:
+        return false
+
+    dots = 0
+    digits = 0
+    while i < n do:
+        ch = text[i:i+1]
+        if ch == ".":
+            dots++
+            if dots > 1:
+                return false
+        elif _isDigit(ch):
+            digits++
+        else:
+            return false
+        i++
+
+    return digits > 0
+
+fuc require(cond: bool, message: str) -> void:
+    if not cond:
+        raiseErr(message)
+
+fuc requireNonEmpty(name: str, value: str) -> void:
+    if length(value) == 0:
+        raiseErr(name + " must not be empty")
+
+fuc requireMinInt(name: str, value: int, minValue: int) -> void:
+    if value < minValue:
+        raiseErr(name + " must be >= " + str(minValue))
+
+export (
+    isEmail,
+    isUrl,
+    isNumber,
+    require,
+    requireNonEmpty,
+    requireMinInt
+)

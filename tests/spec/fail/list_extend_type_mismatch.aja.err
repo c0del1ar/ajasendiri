@@ -1,0 +1,1 @@
+list.extend(...) expects int, got string

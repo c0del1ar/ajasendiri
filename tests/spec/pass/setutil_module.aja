@@ -1,0 +1,16 @@
+import (
+    "modules/setutil"
+)
+
+a = setutil.fromRange(1, 5)
+b = setutil.fromRange(2, 4)
+c = setutil.fromRange(1, 5)
+d = setutil.fromRange(1, 4)
+
+print(setutil.isSubset(b, a))
+print(setutil.isSubset(a, b))
+print(setutil.equals(a, c))
+print(setutil.equals(a, d))
+
+rev = setutil.fromRange(5, 0, -2)
+print(setutil.toList(rev))

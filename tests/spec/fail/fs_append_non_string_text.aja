@@ -1,0 +1,5 @@
+import (
+    "fs"
+)
+
+print(fs.append("/tmp/aja_append_fail.txt", 1))

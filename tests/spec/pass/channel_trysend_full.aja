@@ -1,0 +1,4 @@
+ch = chan(1)
+print(trySend(ch, 7))
+print(trySend(ch, 8))
+print(recv(ch))

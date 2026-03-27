@@ -1,0 +1,3 @@
+ch = chan()
+send(ch, 1)
+send(ch, "x")

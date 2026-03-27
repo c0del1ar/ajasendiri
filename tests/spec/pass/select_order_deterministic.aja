@@ -1,0 +1,7 @@
+ch = chan()
+send(ch, 5)
+select:
+    case send(ch, 9):
+        print("send-first")
+    case recv(ch) as v:
+        print(v)

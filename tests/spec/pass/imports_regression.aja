@@ -1,0 +1,11 @@
+import ("modules/cons_test")
+import (
+    {
+        ally
+        counter
+    } from "modules/cons_test"
+)
+
+print(cons_test.ally("A", "B"))
+print(ally("C", "D"))
+print(counter)

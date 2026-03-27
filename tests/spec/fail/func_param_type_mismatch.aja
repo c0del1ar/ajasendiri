@@ -1,0 +1,4 @@
+fuc apply(cb: func, x: int) -> int:
+    return cb(x)
+
+print(apply(1, 2))

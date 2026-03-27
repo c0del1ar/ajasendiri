@@ -1,0 +1,5 @@
+import (
+    "http"
+)
+
+print(http.request("get", "https://example.com"))

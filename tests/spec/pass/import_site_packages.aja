@@ -1,0 +1,9 @@
+import ("dep_pkg")
+import (
+    {
+        hello
+    } from "dep_pkg"
+)
+
+print(dep_pkg.hello("aja"))
+print(hello("sendiri"))

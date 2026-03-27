@@ -1,0 +1,1 @@
+map.has(...) expects string key, got int

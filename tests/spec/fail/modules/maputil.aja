@@ -1,0 +1,46 @@
+fuc merge(left: map, right: map) -> map:
+    out = {}
+    for k in left.keys():
+        out[k] = left[k]
+    for k in right.keys():
+        out[k] = right[k]
+    return out
+
+fuc pick(m: map, keys: list[str]) -> map:
+    out = {}
+    for k in keys:
+        if m.has(k):
+            out[k] = m[k]
+    return out
+
+fuc omit(m: map, keys: list[str]) -> map:
+    out = {}
+    for k in m.keys():
+        if not keys.has(k):
+            out[k] = m[k]
+    return out
+
+fuc hasAll(m: map, keys: list[str]) -> bool:
+    for k in keys:
+        if not m.has(k):
+            return false
+    return true
+
+fuc getOrInt(m: map, key: str, fallback: int) -> int:
+    if m.has(key):
+        return m[key]
+    return fallback
+
+fuc getOrStr(m: map, key: str, fallback: str) -> str:
+    if m.has(key):
+        return m[key]
+    return fallback
+
+export (
+    merge,
+    pick,
+    omit,
+    hasAll,
+    getOrInt,
+    getOrStr
+)

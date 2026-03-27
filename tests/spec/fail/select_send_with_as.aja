@@ -1,0 +1,4 @@
+ch = chan()
+select:
+    case send(ch, 1) as x:
+        print(x)

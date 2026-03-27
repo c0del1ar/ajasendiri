@@ -1,0 +1,12 @@
+import (
+    "modules/assert"
+)
+
+assert.ok(true, "t")
+assert.eqInt(2, 2, "eq")
+assert.neInt(2, 3, "ne")
+assert.eqStr("a", "a", "eq")
+assert.neStr("a", "b", "ne")
+assert.eqBool(true, true, "eq")
+assert.neBool(true, false, "ne")
+print("ok")

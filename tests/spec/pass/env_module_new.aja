@@ -1,0 +1,7 @@
+import (
+    "modules/env"
+)
+
+print(env.getStr("AJA_NEW_MISSING", "fallback"))
+print(env.getInt("AJA_NEW_MISSING_INT", 42))
+print(env.getBool("AJA_NEW_MISSING_BOOL", true))

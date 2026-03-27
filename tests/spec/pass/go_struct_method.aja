@@ -1,0 +1,13 @@
+type User:
+    name: str
+    age: int
+
+fuc (u: User) greet(prefix: str) -> str:
+    return prefix + " " + u.name
+
+u = User("Aja", 21)
+print(u.name)
+print(u.age)
+u.age = 22
+print(u.age)
+print(u.greet("Hi"))

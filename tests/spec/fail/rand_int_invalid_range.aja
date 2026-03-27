@@ -1,0 +1,5 @@
+import (
+    "rand"
+)
+
+print(rand.int(5, 1))

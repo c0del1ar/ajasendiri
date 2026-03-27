@@ -1,0 +1,3 @@
+interface Speaker:
+    speak(prefix: str) -> str
+    speak(prefix: str) -> str

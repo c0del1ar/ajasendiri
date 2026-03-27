@@ -1,0 +1,5 @@
+import (
+    "os"
+)
+
+os.setenv("AJA_ONLY_KEY")

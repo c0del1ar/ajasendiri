@@ -1,0 +1,9 @@
+import (
+    "time"
+)
+
+name = input("What is your name? ")
+print("Hello " + name)
+
+now = time.now_unix()
+print(now)

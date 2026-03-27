@@ -1,0 +1,14 @@
+fuc task(ch: chan, n: int) -> void:
+    send(ch, n)
+
+ch = chan()
+kostroutine task(ch, 1)
+kostroutine task(ch, 2)
+a = recv(ch)
+b = recv(ch)
+print(a + b)
+waitAll()
+print("done")
+
+kostroutine task(ch, 7)
+print(recv(ch))

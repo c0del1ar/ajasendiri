@@ -1,0 +1,23 @@
+import (
+    "modules/httpx"
+    "fs"
+)
+
+name = "aja_httpx_logic.txt"
+base = "file:///tmp"
+full = httpx.build(base, name)
+full_q = httpx.withQuery(full, "v", "1")
+
+print(full)
+print(full_q)
+
+fs.write("/tmp/" + name, "hello-httpx")
+
+c = httpx.new(base)
+print(c.read(name))
+rx = c.readEx(name)
+print(rx.status)
+print(rx.body)
+print(c.replace(name, "x"))
+print(c.create(name, "y"))
+print(c.drop(name))

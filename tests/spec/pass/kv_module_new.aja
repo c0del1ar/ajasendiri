@@ -1,0 +1,13 @@
+import (
+    "modules/kv"
+)
+
+parsedKv = kv.parse("x=7\n#skip\ny = 8\n")
+print(parsedKv["x"])
+print(parsedKv["y"])
+
+kp = "/tmp/aja_kv_new.kv"
+print(kv.save(kp, {"a": "1", "b": "2"}))
+loadedKv = kv.load(kp)
+print(loadedKv["a"])
+print(loadedKv["b"])

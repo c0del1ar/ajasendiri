@@ -1,0 +1,61 @@
+import (
+    "fs"
+    "str"
+)
+
+fuc _splitFirstEq(text: str) -> (str, str):
+    for i in range(length(text)):
+        if text[i:i+1] == "=":
+            return text[0:i], text[i+1:length(text)]
+    return text, ""
+
+fuc parse(text: str) -> map:
+    out = {}
+    line = ""
+
+    for i in range(length(text)):
+        ch = text[i:i+1]
+        if ch == "\n":
+            trimmed = str.trim(line)
+            if trimmed != "" and trimmed[0:1] != "#":
+                kRaw, vRaw = _splitFirstEq(trimmed)
+                key = str.trim(kRaw)
+                value = str.trim(vRaw)
+                if key != "":
+                    out[key] = value
+            line = ""
+        else:
+            line = line + ch
+
+    trimmed = str.trim(line)
+    if trimmed != "" and trimmed[0:1] != "#":
+        kRaw, vRaw = _splitFirstEq(trimmed)
+        key = str.trim(kRaw)
+        value = str.trim(vRaw)
+        if key != "":
+            out[key] = value
+
+    return out
+
+fuc serialize(m: map) -> str:
+    out = ""
+    first = true
+    for key in m.keys():
+        if not first:
+            out = out + "\n"
+        out = out + key + "=" + m[key]
+        first = false
+    return out
+
+fuc load(path: str) -> map:
+    return parse(fs.read(path))
+
+fuc save(path: str, m: map) -> bool:
+    return fs.write(path, serialize(m))
+
+export (
+    parse,
+    serialize,
+    load,
+    save
+)

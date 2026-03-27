@@ -1,0 +1,17 @@
+m = {"a": 1, "b": 2}
+print(m.has("a"))
+print(m.has("z"))
+print(m.keys())
+print(m.values())
+
+m.delete("a")
+print(m.has("a"))
+print(m.keys())
+print(m.values())
+
+m.delete("not_exists")
+print(length(m))
+
+empty = {}
+print(empty.keys())
+print(empty.values())

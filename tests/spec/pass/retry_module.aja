@@ -1,0 +1,7 @@
+import (
+    "modules/retry"
+)
+
+print(retry.backoffMs(10, 0))
+print(retry.backoffMs(10, 3))
+print(retry.backoffMs(10, 6, 100))

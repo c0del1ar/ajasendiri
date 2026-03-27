@@ -1,0 +1,26 @@
+import (
+    "modules/maputil"
+)
+
+left = {"a": 1, "b": 2}
+right = {"b": 9, "c": 3}
+m = maputil.merge(left, right)
+print(m["a"])
+print(m["b"])
+print(m["c"])
+
+picked = maputil.pick(m, ["a", "c", "x"])
+print(length(picked.keys()))
+print(picked["c"])
+
+omitted = maputil.omit(m, ["b"])
+print(length(omitted.keys()))
+print(omitted.has("b"))
+
+print(maputil.hasAll(m, ["a", "b"]))
+print(maputil.hasAll(m, ["a", "z"]))
+print(maputil.getOrInt(m, "x", 42))
+
+sm = {"name": "arya"}
+print(maputil.getOrStr(sm, "name", "none"))
+print(maputil.getOrStr(sm, "nick", "none"))

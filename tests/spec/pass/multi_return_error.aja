@@ -1,0 +1,19 @@
+fuc pair(x: int) -> (int, error):
+    if x > 0:
+        return x, error()
+    return 0, error("neg")
+
+a, err = pair(7)
+print(a)
+print(err == error())
+
+a, err = pair(-2)
+print(err == error())
+print(str(err))
+
+fuc use(cb: func(int) -> (int, error), n: int) -> (int, error):
+    return cb(n)
+
+v, e2 = use(pair, 3)
+print(v)
+print(e2 == error())

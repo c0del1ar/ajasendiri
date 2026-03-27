@@ -1,0 +1,5 @@
+a = 5
+if a > 3:
+    print("big")
+else:
+    print("small")

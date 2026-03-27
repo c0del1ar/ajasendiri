@@ -1,0 +1,2 @@
+import ("oneline_mod")
+print(oneline_mod.hi("aja"))

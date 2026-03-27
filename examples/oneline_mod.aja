@@ -1,0 +1,4 @@
+fuc hi(name: str) -> str:
+    out = "hi " + name
+    return out
+export (hi)

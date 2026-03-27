@@ -1,0 +1,16 @@
+nums = [2, 4, 6]
+sum = 0
+for n in nums:
+    sum = sum + n
+print(sum)
+
+m = {"a": 1, "b": 2}
+keys = ""
+for k in m:
+    keys = keys + k
+print(keys)
+
+count = 0
+for i in range(3):
+    count++
+print(count)

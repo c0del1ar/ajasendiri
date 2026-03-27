@@ -1,0 +1,17 @@
+import (
+    "modules/datetime"
+)
+
+a = datetime.parseIso("2024-02-29T00:00:00Z")
+print(datetime.formatIso(a))
+
+b = datetime.parseIso("2026-03-26T12:34:56Z")
+print(datetime.formatIso(b))
+print(datetime.toUnixSec(b))
+
+print(datetime.addSeconds(b, 4) == b + 4000)
+print(datetime.diffSeconds(b + 2500, b))
+print(datetime.fromUnixSec(datetime.toUnixSec(b)) == b)
+
+print(datetime.nowUnixSec() > 0)
+print(datetime.nowMs() > 0)

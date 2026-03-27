@@ -1,0 +1,15 @@
+import (
+    "modules/validate"
+)
+
+print(validate.isEmail("a@b.com"))
+print(validate.isEmail("a@@b.com"))
+print(validate.isUrl("https://a.b"))
+print(validate.isUrl("ftp://a.b"))
+print(validate.isNumber("-12.5"))
+print(validate.isNumber("12.3.4"))
+
+validate.require(true, "bad")
+validate.requireNonEmpty("name", "arya")
+validate.requireMinInt("age", 10, 1)
+print("ok")

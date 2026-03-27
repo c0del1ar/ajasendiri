@@ -1,0 +1,14 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Bot:
+    id: int
+
+fuc (b: Bot) speak(prefix: int) -> str:
+    return str(prefix)
+
+fuc talk(s: Speaker) -> str:
+    return s.speak("Hi")
+
+b = Bot(1)
+print(talk(b))

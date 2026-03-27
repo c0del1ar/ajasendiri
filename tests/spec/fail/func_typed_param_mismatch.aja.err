@@ -1,0 +1,1 @@
+type mismatch for cb: expected func(int) -> int, got func(string) -> string

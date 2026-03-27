@@ -1,0 +1,22 @@
+interface Speaker:
+    speak(prefix: str) -> str
+
+type Dog:
+    name: str
+
+type Cat:
+    name: str
+
+fuc (d: Dog) speak(prefix: str) -> str:
+    return prefix + " " + d.name
+
+fuc (c: Cat) speak(prefix: str) -> str:
+    return prefix + " " + c.name
+
+fuc intro(s: Speaker) -> str:
+    return s.speak("Hello")
+
+a = Dog("Rex")
+b = Cat("Mimi")
+print(intro(a))
+print(intro(b))

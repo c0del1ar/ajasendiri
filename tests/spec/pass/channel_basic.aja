@@ -1,0 +1,8 @@
+ch = chan()
+send(ch, 10)
+print(recv(ch))
+
+send(ch, 12)
+print(recv(ch))
+
+close(ch)

@@ -1,0 +1,4 @@
+ch = chan()
+select:
+    case timeout(-1):
+        print("x")

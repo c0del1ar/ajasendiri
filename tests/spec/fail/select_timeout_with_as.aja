@@ -1,0 +1,3 @@
+select:
+    case timeout(1) as t:
+        print(t)

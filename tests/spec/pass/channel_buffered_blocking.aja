@@ -1,0 +1,10 @@
+fuc producer(ch: chan[int]) -> void:
+    send(ch, 1)
+    send(ch, 2)
+
+ch = chan(1)
+kostroutine producer(ch)
+a = recv(ch)
+b = recv(ch)
+waitAll()
+print(a + b)
