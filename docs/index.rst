@@ -1,12 +1,11 @@
-Ajasendiri Documentation
-========================
+Ajasendiri Docs Index
+=====================
 
-Contents
---------
+Start here when you need language or implementation details.
 
-- ``language.rst``: language syntax, typing, functions, module rules
-- ``stdlib.rst``: builtin functions and native stdlib modules
-- ``concurrency.rst``: channels, select, kostroutine model
-- ``tooling.rst``: CLI commands, check/fmt/repl/debug/lsp/mmk
-- ``architecture.rst``: source tree and implementation notes
-- ``../CONTRIBUTING.md``: contributor workflow and code placement rules
+- ``language.rst``: syntax, typing, functions, module rules
+- ``stdlib.rst``: builtins and modules available at runtime
+- ``concurrency.rst``: kostroutine, channels, select behavior
+- ``tooling.rst``: CLI commands, formatter, REPL, debugger, mmk
+- ``architecture.rst``: source layout and extension points
+- ``../CONTRIBUTING.md``: contribution workflow

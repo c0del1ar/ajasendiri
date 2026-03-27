@@ -1,102 +1,107 @@
 Ajasendiri Developer Overview
 =============================
 
-Overview
---------
+Purpose
+-------
 
-Ajasendiri is an interpreted language with Python-like block syntax and strict runtime typing.
-It is implemented in C and split into lexer, parser, runtime, and CLI modules.
+This document is a quick contributor map: what the language supports today,
+how the codebase is organized, and where to place new work.
 
-Language Features (Current)
----------------------------
+Current language scope
+----------------------
 
-Syntax and control flow:
-- ``fuc`` function declaration
+Syntax and flow control
+^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``fuc`` function declarations
 - indentation-based blocks (``:`` + indented body)
 - ``if / elif / else``
 - ``match / case / default``
-- ``for`` with ``range`` and iterable forms
+- ``for`` loops (range and iterable forms)
 - ``while <cond> do:`` and ``do: ... while <cond>``
-- ``break`` / ``continue`` (including labels)
+- ``break`` / ``continue`` with optional labels
 - ``defer``
 - ``n++`` increment sugar
-- list/map comprehensions (single ``for`` + optional ``if``)
+- list/map comprehensions (single ``for``, optional ``if``)
 - membership operators: ``in`` and ``not in``
 
-Types and typing rules:
+Types and typing
+^^^^^^^^^^^^^^^^
+
 - strict typing: first assignment locks variable type
 - core types: ``int``, ``float``, ``str``/``string``, ``bool``, ``error``, ``void``
 - containers: ``list``, ``map``, ``chan``
 - generic annotations: ``list[T]``, ``map[str, V]``, ``chan[T]``
-- user types with ``type`` and receiver methods
+- custom object types via ``type`` and receiver methods
 - Go-style ``interface`` with implicit implementation
 
-Functions:
+Functions
+^^^^^^^^^
+
 - first-class functions
-- typed function signatures: ``func(...) -> ...``
-- lambda-lite: ``fuc(...) -> T: expr``
-- multi-return signatures and assignments: ``-> (T1, T2)``, ``a, b = fn()``
-- default parameters and named arguments for user functions
-- keyword-only user parameters via ``*`` marker in parameter lists
+- typed signatures
+- lambda-lite syntax
+- multi-return signatures and assignment
+- default parameters and named arguments
+- keyword-only parameters via ``*``
 
-Modules:
+Modules
+^^^^^^^
+
 - ``import (...)`` and ``export (...)``
-- import aliases for import-all entries
+- import alias support for import-all entries
 - selective import syntax: ``{name ...} from "module"``
-- module resolution: current dir, ``$AJA_VENV/site-packages`` (if set), parent ``.aja/site-packages``, global ``$HOME/.aja/site-packages``, then ``AJA_PATH``
+- resolution order: current dir -> ``$AJA_VENV/site-packages`` -> parent ``.aja/site-packages`` -> ``$HOME/.aja/site-packages`` -> ``AJA_PATH``
 
-Runtime Builtins
-----------------
+Builtins and stdlib snapshot
+----------------------------
 
-General builtins:
+General builtins
+^^^^^^^^^^^^^^^^
+
 - ``print``
 - ``input``
-- ``int``, ``float``, ``str`` casts
+- ``int`` / ``float`` / ``str`` casts
 - ``error`` and ``raiseErr``
 - ``length`` and ``sort``
 
-Concurrency builtins:
+Concurrency builtins
+^^^^^^^^^^^^^^^^^^^^
+
 - ``kostroutine``
 - ``waitAll``
 - ``chan``, ``send``, ``recv``, ``close``
 - ``trySend``, ``tryRecv``
 - ``select`` + ``timeout(ms)``
 
-Native stdlib modules:
-- ``math``
-- ``time``
-- ``json``
-- ``fs``
-- ``http``
-- ``rand``
-- ``os``
-- ``path``
-- selected native module calls support named arguments (``fs``, ``http``, ``time.sleep``, ``rand.seed/int``)
+Native stdlib modules
+^^^^^^^^^^^^^^^^^^^^^
 
-Pure Ajasendiri libs:
-- core (default install): ``re``, ``str``, ``text``, ``list``, ``set``, ``setutil``, ``maputil``, ``validate``, ``assert``
+- ``math``, ``time``, ``json``, ``fs``, ``http``, ``rand``, ``os``, ``path``
+
+Pure Ajasendiri libs
+^^^^^^^^^^^^^^^^^^^^
+
+- core: ``re``, ``str``, ``text``, ``list``, ``set``, ``setutil``, ``maputil``, ``validate``, ``assert``
 - optional: ``httpx``, ``fileutil``, ``env``, ``log``, ``retry``, ``query``, ``randutil``, ``queue``, ``stack``, ``cache``, ``kv``, ``datetime``
 
-Project Layout
+Project layout
 --------------
 
-- ``include/core/``: token, AST, and public API headers
-- ``include/{lexer,parser,runtime,cli}/``: module-level header entry points
-- ``src/lexer/``: lexer implementation
-- ``src/parser/``: parser implementation and parser submodules
-- ``src/runtime/``: runtime implementation and runtime submodules
-- ``src/cli/``: command-line interface
-- ``libs/``: pure Ajasendiri libraries (for example ``httpx.aja``, ``text.aja``, ``str.aja``, ``list.aja``, ``set.aja``, ``setutil.aja``, ``maputil.aja``, ``fileutil.aja``, ``env.aja``, ``log.aja``, ``retry.aja``, ``query.aja``, ``randutil.aja``, ``queue.aja``, ``stack.aja``, ``cache.aja``, ``kv.aja``, ``validate.aja``, ``assert.aja``, ``datetime.aja``, ``re.aja``)
+- ``include/core/``: token/AST/public API headers
+- ``include/{lexer,parser,runtime,cli}/``: module-facing headers
+- ``src/lexer/``: tokenizer
+- ``src/parser/``: parser modules
+- ``src/runtime/``: runtime modules
+- ``src/cli/``: CLI and package tooling
+- ``libs/``: pure Aja stdlib modules
 - ``tests/spec/``: language regression tests
 
-Behavior Notes
+Behavior notes
 --------------
 
-- Conditions for ``if/while/do-while`` are bool-only.
-- ``and/or`` short-circuit and require bool operands.
-- ``match`` requires strict comparable types (numeric mix supported for int/float).
-- ``raiseErr`` is fatal and still runs deferred calls in the current function frame.
-- ``http`` module uses in-runtime networking for ``http://`` and ``https://`` and local reads for ``file://`` URLs.
-- ``http.requestEx(method, url[, body])`` returns ``HttpResponse`` object with ``status``, ``headers``, and ``body``.
-
-See ``docs/*.rst`` for detailed semantics and examples.
+- ``if``/``while``/``do-while`` conditions must be bool.
+- ``and``/``or`` short-circuit and require bool operands.
+- ``match`` uses strict comparable types (with int/float numeric compatibility).
+- ``raiseErr`` is fatal but still runs deferred calls in the current function frame.
+- ``http`` is runtime-native (supports ``http://``, ``https://``, and ``file://``).

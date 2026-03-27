@@ -4,15 +4,15 @@ Language Reference
 Files and blocks
 ----------------
 
-- Source extension is ``.aja``.
-- Blocks use Python-like indentation after ``:``.
+- Source files use ``.aja``.
+- Blocks are indentation-based and start after ``:``.
 
 Variables and typing
 --------------------
 
-- First assignment locks variable type.
-- Reassignments must match the original type.
-- Immutable binding uses ``imut``.
+- First assignment locks a variable type.
+- Reassignment must keep the same type.
+- Immutable bindings use ``imut``.
 
 Example:
 
@@ -41,29 +41,29 @@ Map helpers:
    removed = scores.pop("a")
    removed = scores.pop("missing", 0)
 
-List comprehension (single ``for`` + optional ``if``):
+List comprehension:
 
 .. code-block:: text
 
    squares = [x * x for x in nums]
    tail = [x for x in nums if x > 1]
 
-Map comprehension (single ``for`` + optional ``if``):
+Map comprehension:
 
 .. code-block:: text
 
    m = {str(x): x * x for x in nums if x > 1}
 
-Notes:
+Rules:
 
 - Comprehension iterable must be ``list`` or ``map``.
-- ``if`` filter must evaluate to ``bool``.
+- Comprehension ``if`` must evaluate to ``bool``.
 - Map comprehension keys must evaluate to ``str``.
 
 Membership operators
 --------------------
 
-``in`` and ``not in`` are supported:
+Supported operators: ``in`` and ``not in``.
 
 .. code-block:: text
 
@@ -75,9 +75,9 @@ Membership operators
 Rules:
 
 - Right operand must be ``list``, ``map``, or ``string``.
-- For ``map``, membership checks key existence (left must be ``string``).
-- For ``string``, left operand must be ``string`` and checks substring.
-- For ``list``, left type must match list element type.
+- For ``map``, membership checks key existence (left side must be ``string``).
+- For ``string``, left side must be ``string`` (substring check).
+- For ``list``, left type must match the list element type.
 
 Functions
 ---------
@@ -107,14 +107,6 @@ Keyword-only parameters:
        return prefix + " " + name + suffix
 
    greet("Aja", prefix = "Hi")
-
-Named arguments are also supported for key stdlib calls (for example ``fs``, ``http``, ``time``, ``rand``):
-
-.. code-block:: text
-
-   fs.write(path = "/tmp/a.txt", text = "hello")
-   rand.int(min = 1, max = 10)
-   time.sleep(ms = 100)
 
 Lambda-lite:
 
