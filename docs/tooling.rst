@@ -9,8 +9,8 @@ Build and test
    make
    make test
 
-Runner commands
----------------
+Run commands
+------------
 
 .. code-block:: bash
 
@@ -31,9 +31,9 @@ Virtual environment
 
 Notes:
 
-- Activating sets ``AJA_VENV`` and prepends ``.venv/bin`` to ``PATH``.
-- With active ``AJA_VENV``, ``mmk install`` installs project dependencies into ``$AJA_VENV/site-packages``.
-- Runtime module import checks ``$AJA_VENV/site-packages`` before global paths.
+- Activation sets ``AJA_VENV`` and prepends ``.venv/bin`` to ``PATH``.
+- With ``AJA_VENV`` active, ``mmk install`` targets ``$AJA_VENV/site-packages``.
+- Runtime import lookup checks venv site-packages before global locations.
 
 Formatter
 ---------
@@ -59,21 +59,17 @@ LSP
 
    python3 tools/ajasendiri_lsp.py
 
-Syntax Highlighting (VS Code)
------------------------------
+VS Code syntax highlighting
+---------------------------
 
-Syntax highlighting for ``.aja`` is available in:
+Use ``tools/vscode-ajasendiri``:
 
-``tools/vscode-ajasendiri``
-
-Use locally:
-
-1. Open ``tools/vscode-ajasendiri`` in VS Code.
+1. Open that folder in VS Code.
 2. Press ``F5``.
 3. Open a ``.aja`` file in the Extension Development Host window.
 
-Dependencies (mmk)
-------------------
+Dependency tooling (mmk)
+------------------------
 
 .. code-block:: bash
 
@@ -89,12 +85,11 @@ Dependencies (mmk)
 
 Notes:
 
-- ``mmk install`` installs project dependencies into ``./.aja/site-packages``.
-- If ``AJA_VENV`` is active, ``mmk install`` installs into ``$AJA_VENV/site-packages``.
-- ``mmk install <module> --global`` installs bundled optional libs by name (for example ``httpx``) into ``$HOME/.aja/site-packages``.
-- ``mmk install-stdlib --global`` installs bundled **core** pure ``.aja`` stdlib libs.
-- ``mmk install-stdlib --global --all`` installs core + optional bundled pure libs.
-- With active ``AJA_VENV``, ``mmk install <module>`` and ``mmk install-stdlib`` default to ``$AJA_VENV/site-packages``.
-- For registry dependencies, version selectors are resolved and pinned in ``requirements.txt`` (for example ``^1.2`` or ``latest``).
-- If ``AJA_SIGN_KEY`` is set, ``mmk pack/publish`` sign packages and ``mmk install/verify`` validate signatures for registry dependencies.
-- Set ``AJA_REQUIRE_SIGNATURE=1`` to require signatures on registry dependencies.
+- Default project install target is ``./.aja/site-packages``.
+- With active ``AJA_VENV``, install target becomes ``$AJA_VENV/site-packages``.
+- ``mmk install <module> --global`` installs optional bundled libs to ``$HOME/.aja/site-packages``.
+- ``mmk install-stdlib --global`` installs core pure ``.aja`` libs.
+- ``mmk install-stdlib --global --all`` installs core + optional pure libs.
+- Registry selectors are resolved and pinned in ``requirements.txt``.
+- If ``AJA_SIGN_KEY`` is set, ``mmk pack/publish`` sign packages and ``mmk install/verify`` validate signatures.
+- Set ``AJA_REQUIRE_SIGNATURE=1`` to require signed registry dependencies.

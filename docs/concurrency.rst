@@ -5,31 +5,35 @@ kostroutine
 -----------
 
 - ``kostroutine fn(args...)`` schedules a function on runtime worker threads.
-- ``waitAll()`` joins pending scheduled routines.
+- ``waitAll()`` blocks until all scheduled routines finish.
 
 Channels
 --------
 
-Creation:
-- ``chan()`` unbounded
-- ``chan(n)`` buffered, requires ``n > 0``
+Create channels:
 
-Operations:
+- ``chan()`` for unbounded channels
+- ``chan(n)`` for buffered channels (``n`` must be ``> 0``)
+
+Channel operations:
+
 - ``send(ch, value)``
 - ``recv(ch)``
 - ``close(ch)``
-- ``trySend(ch, value)`` returns bool
+- ``trySend(ch, value)`` returns ``bool``
 - ``tryRecv(ch, fallback)`` returns received value or fallback
 
 select
 ------
 
-Supported cases:
+Supported case forms:
+
 - ``case recv(ch) as v:``
 - ``case send(ch, v):``
 - ``case timeout(ms):``
 - ``default:``
 
 Current behavior:
-- deterministic case choice (first ready case in source order)
-- timeout requires non-negative ``int`` milliseconds
+
+- deterministic selection (first ready case in source order)
+- ``timeout(ms)`` requires non-negative ``int`` milliseconds
