@@ -108,7 +108,7 @@ path
 Pure Ajasendiri libs
 --------------------
 
-Core (installed by default with ``mmk install-stdlib``)
+Core (installed by default with ``mmk install-coli``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``libs/re.aja``: typed regex wrapper
@@ -121,7 +121,7 @@ Core (installed by default with ``mmk install-stdlib``)
 - ``libs/validate.aja``: value validation helpers
 - ``libs/assert.aja``: lightweight assertion helpers
 
-Optional (install via ``mmk install <name>`` or ``mmk install-stdlib --all``)
+Optional (install via ``mmk install <name>`` or ``mmk install-coli --all``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``libs/httpx.aja``

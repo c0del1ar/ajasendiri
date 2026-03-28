@@ -134,13 +134,13 @@ fi
 
 HOME_TMP="$TMP/home"
 mkdir -p "$HOME_TMP"
-HOME="$HOME_TMP" "$BIN" mmk install-stdlib --global --from "$ROOT/libs" >/dev/null
+HOME="$HOME_TMP" "$BIN" mmk install-coli --global --from "$ROOT/libs" >/dev/null
 if [ ! -f "$HOME_TMP/.aja/site-packages/re.aja" ]; then
-    echo "[FAIL] mmk install-stdlib --global did not install core module re.aja"
+    echo "[FAIL] mmk install-coli --global did not install core module re.aja"
     exit 1
 fi
 if [ -f "$HOME_TMP/.aja/site-packages/query.aja" ]; then
-    echo "[FAIL] mmk install-stdlib --global should not install optional module query.aja"
+    echo "[FAIL] mmk install-coli --global should not install optional module query.aja"
     exit 1
 fi
 
