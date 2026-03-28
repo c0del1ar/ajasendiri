@@ -1,13 +1,28 @@
-Ajasendiri Docs Index
-=====================
+Ajasendiri Documentation
+========================
 
-Start here when you need language or implementation details.
+Welcome to the Ajasendiri docs.
 
-- ``howto/index.rst``: step-by-step tutorials for day-to-day usage
-- ``reference/index.rst``: quick lookup pages for syntax and API
-- ``language.rst``: syntax, typing, functions, module rules
-- ``stdlib.rst``: builtins and modules available at runtime
-- ``concurrency.rst``: kostroutine, channels, select behavior
-- ``tooling.rst``: CLI commands, formatter, REPL, debugger, mmk
-- ``architecture.rst``: source layout and extension points
-- ``../CONTRIBUTING.md``: contribution workflow
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
+   howto/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   reference/index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Core Docs
+
+   language
+   stdlib
+   concurrency
+   tooling
+   architecture
+
+See also: ``../CONTRIBUTING.md`` for contributor workflow.
