@@ -75,13 +75,13 @@ if [ -s "$TMP/app.err" ]; then
     exit 1
 fi
 
-./.venv/bin/ajasendiri mmk install-stdlib --from "$ROOT/libs" >/dev/null
+./.venv/bin/ajasendiri mmk install-coli --from "$ROOT/libs" >/dev/null
 if [ ! -f .venv/site-packages/re.aja ]; then
-    echo "[FAIL] install-stdlib should install core modules into active venv"
+    echo "[FAIL] install-coli should install core modules into active venv"
     exit 1
 fi
 if [ -f .venv/site-packages/query.aja ]; then
-    echo "[FAIL] install-stdlib default should not install optional modules"
+    echo "[FAIL] install-coli default should not install optional modules"
     exit 1
 fi
 

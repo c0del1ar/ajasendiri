@@ -260,7 +260,7 @@ static int install_stdlib_modules(const char *cmd_name, const char *source_root,
     return 1;
 }
 
-static int handle_mod_install_stdlib(int argc, char **argv) {
+static int handle_mod_install_coli(int argc, char **argv) {
     int target_mode = -1;  // -1=auto, 0=project, 1=global, 2=venv
     const char *from_arg = NULL;
     int install_optional = 0;
@@ -294,13 +294,13 @@ static int handle_mod_install_stdlib(int argc, char **argv) {
             continue;
         }
         fprintf(stderr,
-                "usage: ./ajasendiri mmk install-stdlib [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
+                "usage: ./ajasendiri mmk install-coli [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
         return 1;
     }
 
     char cwd[4096];
     if (!getcwd(cwd, sizeof(cwd))) {
-        fprintf(stderr, "mmk install-stdlib: cannot get current directory\n");
+        fprintf(stderr, "mmk install-coli: cannot get current directory\n");
         return 1;
     }
 
@@ -311,14 +311,14 @@ static int handle_mod_install_stdlib(int argc, char **argv) {
 
     char *target_site = NULL;
     char *project_root = NULL;
-    if (!resolve_stdlib_target_site(target_mode, cwd, "mmk install-stdlib", &target_site, &project_root)) {
+    if (!resolve_stdlib_target_site(target_mode, cwd, "mmk install-coli", &target_site, &project_root)) {
         return 1;
     }
 
     char *source_root = resolve_stdlib_source_root(cwd, from_arg);
 
     if (!is_directory_path(source_root)) {
-        fprintf(stderr, "mmk install-stdlib: stdlib source directory not found: %s\n", source_root);
+        fprintf(stderr, "mmk install-coli: stdlib source directory not found: %s\n", source_root);
         free(source_root);
         free(target_site);
         free(project_root);
@@ -337,7 +337,7 @@ static int handle_mod_install_stdlib(int argc, char **argv) {
     }
 
     int installed = 0;
-    if (!install_stdlib_modules("mmk install-stdlib", source_root, target_site, selected, selected_count, &installed)) {
+    if (!install_stdlib_modules("mmk install-coli", source_root, target_site, selected, selected_count, &installed)) {
         free(source_root);
         free(target_site);
         free(project_root);
