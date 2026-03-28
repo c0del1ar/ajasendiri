@@ -11,6 +11,8 @@ Builtins
 - ``raiseErr(message)``
 - ``length(x)`` for list/map/string
 - ``sort(list)``
+- ``memStats()`` allocation counters
+- ``memCollect()`` memory collector hook (currently stats snapshot)
 
 Container methods
 -----------------
@@ -49,6 +51,7 @@ time
 - ``now_unix()``
 - ``now_ms()``
 - ``sleep(ms)``
+- ``after(ms)`` -> ``chan`` (single timeout event)
 
 json
 ^^^^
@@ -120,11 +123,14 @@ Core (installed by default with ``mmk install-coli``)
 - ``libs/maputil.aja``: map utilities
 - ``libs/validate.aja``: value validation helpers
 - ``libs/assert.aja``: lightweight assertion helpers
+- ``libs/context.aja``: timeout/cancel helpers over channels
+- ``libs/pathlib.aja``: typed path/file helper wrappers
 
 Optional (install via ``mmk install <name>`` or ``mmk install-coli --all``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``libs/httpx.aja``
+- ``libs/collections.aja``
 - ``libs/fileutil.aja``
 - ``libs/env.aja``
 - ``libs/log.aja``

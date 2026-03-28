@@ -169,6 +169,12 @@ static int format_source(const char *src, char **out, char *err, size_t err_cap)
             end++;
         }
         size_t raw_len = end - start;
+        if (raw_len == (size_t)-1) {
+            free(indent_stack);
+            free(out_buf.buf);
+            snprintf(err, err_cap, "line too long");
+            return 0;
+        }
         char *line = (char *)malloc(raw_len + 1);
         if (!line) {
             free(indent_stack);
@@ -642,6 +648,11 @@ static int format_path_recursive(const char *path, int from_dir, int check_only,
             }
             size_t path_len = strlen(path);
             size_t name_len = strlen(ent->d_name);
+            if (path_len > ((size_t)-1) - name_len - 2) {
+                closedir(dir);
+                fprintf(stderr, "fmt error: path too long\n");
+                return 0;
+            }
             char *child = (char *)malloc(path_len + 1 + name_len + 1);
             if (!child) {
                 closedir(dir);

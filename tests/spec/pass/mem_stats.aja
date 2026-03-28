@@ -1,0 +1,8 @@
+nums = [1, 2, 3]
+print(length(nums))
+
+stats = memStats()
+print(stats["lists"] >= 1)
+
+after = memCollect()
+print(after["lists"] >= stats["lists"])

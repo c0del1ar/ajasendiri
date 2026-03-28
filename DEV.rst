@@ -64,6 +64,7 @@ General builtins
 - ``int`` / ``float`` / ``str`` casts
 - ``error`` and ``raiseErr``
 - ``length`` and ``sort``
+- ``memStats`` and ``memCollect``
 
 Concurrency builtins
 ^^^^^^^^^^^^^^^^^^^^
@@ -73,6 +74,7 @@ Concurrency builtins
 - ``chan``, ``send``, ``recv``, ``close``
 - ``trySend``, ``tryRecv``
 - ``select`` + ``timeout(ms)``
+- ``time.after(ms)`` timeout channel helper
 
 Native stdlib modules
 ^^^^^^^^^^^^^^^^^^^^^
@@ -83,7 +85,8 @@ Pure Ajasendiri libs
 ^^^^^^^^^^^^^^^^^^^^
 
 - core: ``re``, ``str``, ``text``, ``list``, ``set``, ``setutil``, ``maputil``, ``validate``, ``assert``
-- optional: ``httpx``, ``fileutil``, ``env``, ``log``, ``retry``, ``query``, ``randutil``, ``queue``, ``stack``, ``cache``, ``kv``, ``datetime``
+- core: ``context``, ``pathlib``
+- optional: ``httpx``, ``collections``, ``fileutil``, ``env``, ``log``, ``retry``, ``query``, ``randutil``, ``queue``, ``stack``, ``cache``, ``kv``, ``datetime``
 
 Project layout
 --------------

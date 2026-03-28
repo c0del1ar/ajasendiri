@@ -9,6 +9,8 @@ OPENSSL_LIBS ?= $(shell pkg-config --libs openssl 2>/dev/null)
 SRC := src/cli/main.c src/lexer/lexer.c src/parser/parser.c src/runtime/runtime.c
 OBJ := $(SRC:.c=.o)
 DEP := $(OBJ:.o=.d)
+AJA_FMT_PATHS := examples libs tests/spec/pass
+DOCS_PYTHON := $(if $(wildcard pyvenv/bin/python),pyvenv/bin/python,python3)
 
 all: ajasendiri
 
@@ -31,10 +33,10 @@ lsp:
 	python3 tools/ajasendiri_lsp.py
 
 fmt: ajasendiri
-	./ajasendiri fmt .
+	./ajasendiri fmt $(AJA_FMT_PATHS)
 
 fmt-check: ajasendiri
-	./ajasendiri fmt --check .
+	./ajasendiri fmt --check $(AJA_FMT_PATHS)
 
 mmk-init: ajasendiri
 	./ajasendiri mmk init

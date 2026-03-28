@@ -7,6 +7,7 @@ Build and test
 .. code-block:: bash
 
    make
+   make ci
    make test
    make docs
    make docs-check

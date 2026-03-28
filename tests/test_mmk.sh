@@ -94,11 +94,11 @@ fi
 
 "$BIN" mmk install >/dev/null
 
-if ! grep -E -q '^dep==1\.2\.3 @ ./libs/dep\.aja \| hash=[0-9a-f]{16}$' requirements.lock; then
+if ! grep -E -q '^dep==1\.2\.3 @ ./libs/dep\.aja \| hash=[0-9a-f]{64}$' requirements.lock; then
     echo "[FAIL] mmk install did not write pinned+hashed lock line"
     exit 1
 fi
-if ! grep -E -q '^regdep==2\.1\.0 @ registry://regdep/2\.1\.0 \| hash=[0-9a-f]{16}$' requirements.lock; then
+if ! grep -E -q '^regdep==2\.1\.0 @ registry://regdep/2\.1\.0 \| hash=[0-9a-f]{64}$' requirements.lock; then
     echo "[FAIL] mmk install did not lock registry dependency hash"
     exit 1
 fi

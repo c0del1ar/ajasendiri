@@ -397,7 +397,7 @@ static Value native_http_call(Runtime *rt, Module *current_module, Env *env, Exp
     int has_body = 0;
     int has_method_arg = 0;
     Value method_v = value_invalid();
-    Value url_v = value_invalid();
+    Value url_v;
     Value body_v = value_invalid();
     const char *body_text = "";
 

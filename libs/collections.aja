@@ -1,0 +1,16 @@
+fuc countStr(items: list[str]) -> map:
+    out = {}
+    for item in items:
+        if out.has(item):
+            out[item] = out[item] + 1
+        else:
+            out[item] = 1
+    return out
+
+fuc keysSorted(m: map) -> list[str]:
+    return sort(m.keys())
+
+export (
+    countStr,
+    keysSorted
+)

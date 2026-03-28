@@ -2,6 +2,9 @@ static int register_namespaced_exports(Runtime *rt, Module *m) {
     for (int i = 0; i < m->prog->export_count; i++) {
         const char *sym = m->prog->exports[i];
         size_t n1 = strlen(m->namespace), n2 = strlen(sym);
+        if (n1 > ((size_t)-1) - n2 - 2) {
+            return 0;
+        }
         char *full = (char *)malloc(n1 + n2 + 2);
         if (!full) {
             return 0;
@@ -67,7 +70,7 @@ static Module *try_load_native_module(Runtime *rt, const char *base_dir, const c
     char *ns = module_namespace(mod_name);
     int kind = NATIVE_NONE;
     const char *math_exports[] = {"pi", "abs", "sqrt", "min", "max"};
-    const char *time_exports[] = {"now_unix", "now_ms", "sleep"};
+    const char *time_exports[] = {"now_unix", "now_ms", "sleep", "after"};
     const char *json_exports[] = {"encode", "decode"};
     const char *fs_exports[] = {"read", "write", "append", "exists", "mkdir", "remove"};
     const char *http_exports[] = {"get", "post", "put", "delete", "request", "requestEx"};
@@ -86,7 +89,7 @@ static Module *try_load_native_module(Runtime *rt, const char *base_dir, const c
     } else if (strcmp(ns, "time") == 0) {
         kind = NATIVE_TIME;
         exports = time_exports;
-        export_count = 3;
+        export_count = 4;
     } else if (strcmp(ns, "json") == 0) {
         kind = NATIVE_JSON;
         exports = json_exports;
@@ -153,7 +156,8 @@ static int native_module_is_function_export(Module *m, const char *name) {
                strcmp(name, "max") == 0;
     }
     if (m->native_kind == NATIVE_TIME) {
-        return strcmp(name, "now_unix") == 0 || strcmp(name, "now_ms") == 0 || strcmp(name, "sleep") == 0;
+        return strcmp(name, "now_unix") == 0 || strcmp(name, "now_ms") == 0 || strcmp(name, "sleep") == 0 ||
+               strcmp(name, "after") == 0;
     }
     if (m->native_kind == NATIVE_JSON) {
         return strcmp(name, "encode") == 0 || strcmp(name, "decode") == 0;
@@ -318,6 +322,10 @@ static int process_imports(Runtime *rt, Module *m) {
             if (imported->native_kind != NATIVE_NONE && native_module_is_function_export(imported, name)) {
                 size_t n1 = strlen(imported->namespace);
                 size_t n2 = strlen(name);
+                if (n1 > ((size_t)-1) - n2 - 2) {
+                    runtime_error(rt, 0, "out of memory while importing '%s'", name);
+                    return 0;
+                }
                 char *qualified = (char *)malloc(n1 + n2 + 2);
                 if (!qualified) {
                     runtime_error(rt, 0, "out of memory while importing '%s'", name);

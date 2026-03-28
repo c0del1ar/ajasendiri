@@ -1,0 +1,6 @@
+import (
+    "time"
+)
+
+ch = time.after(1)
+print(recv(ch))

@@ -7,6 +7,10 @@ typedef struct {
 } Parser;
 
 static char *xstrndup(const char *s, size_t n) {
+    if (n == (size_t)-1) {
+        fprintf(stderr, "fatal: out of memory\n");
+        exit(1);
+    }
     char *out = (char *)malloc(n + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");
@@ -67,34 +71,66 @@ static void expr_list_push(Expr ***items, int *count, int *cap, Expr *expr) {
 
 static void call_arg_list_push(Expr ***args, char ***arg_names, int *count, int *cap, Expr *arg, const char *arg_name) {
     if (*count + 1 > *cap) {
-        *cap = *cap == 0 ? 4 : *cap * 2;
-        Expr **next_args = (Expr **)realloc(*args, (size_t)*cap * sizeof(Expr *));
-        char **next_names = (char **)realloc(*arg_names, (size_t)*cap * sizeof(char *));
+        int next_cap = *cap == 0 ? 4 : *cap * 2;
+        Expr **next_args = (Expr **)malloc((size_t)next_cap * sizeof(Expr *));
+        char **next_names = (char **)malloc((size_t)next_cap * sizeof(char *));
         if (!next_args || !next_names) {
+            free(next_args);
+            free(next_names);
             fprintf(stderr, "fatal: out of memory\n");
             exit(1);
         }
+        for (int i = 0; i < *count; i++) {
+            next_args[i] = (*args)[i];
+            next_names[i] = (*arg_names)[i];
+        }
+        free(*args);
+        free(*arg_names);
         *args = next_args;
         *arg_names = next_names;
+        *cap = next_cap;
     }
     (*args)[*count] = arg;
-    (*arg_names)[*count] = arg_name ? xstrdup(arg_name) : NULL;
+    if (arg_name) {
+        char *name_copy = xstrdup(arg_name);
+        if (!name_copy) {
+            fprintf(stderr, "fatal: out of memory\n");
+            exit(1);
+        }
+        (*arg_names)[*count] = name_copy;
+    } else {
+        (*arg_names)[*count] = NULL;
+    }
     (*count)++;
 }
 
 static void map_item_list_push(char ***keys, Expr ***values, int *count, int *cap, const char *key, Expr *value) {
     if (*count + 1 > *cap) {
-        *cap = *cap == 0 ? 4 : *cap * 2;
-        char **next_keys = (char **)realloc(*keys, (size_t)*cap * sizeof(char *));
-        Expr **next_values = (Expr **)realloc(*values, (size_t)*cap * sizeof(Expr *));
+        int next_cap = *cap == 0 ? 4 : *cap * 2;
+        char **next_keys = (char **)malloc((size_t)next_cap * sizeof(char *));
+        Expr **next_values = (Expr **)malloc((size_t)next_cap * sizeof(Expr *));
         if (!next_keys || !next_values) {
+            free(next_keys);
+            free(next_values);
             fprintf(stderr, "fatal: out of memory\n");
             exit(1);
         }
+        for (int i = 0; i < *count; i++) {
+            next_keys[i] = (*keys)[i];
+            next_values[i] = (*values)[i];
+        }
+        free(*keys);
+        free(*values);
         *keys = next_keys;
         *values = next_values;
+        *cap = next_cap;
     }
-    (*keys)[*count] = xstrdup(key);
+    char *key_copy = xstrdup(key);
+    if (!key_copy) {
+        fprintf(stderr, "fatal: out of memory\n");
+        exit(1);
+    }
+    (*keys)[*count] = key_copy;
     (*values)[*count] = value;
     (*count)++;
 }
@@ -340,6 +376,7 @@ static void parser_error(Parser *p, Token t, const char *fmt, ...) {
     char msg[384];
     va_list ap;
     va_start(ap, fmt);
+    /* Flawfinder: ignore */
     vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
 
@@ -441,6 +478,150 @@ static TypeRef *type_ref_box(TypeRef t) {
     return boxed;
 }
 
+static void type_ref_cleanup(TypeRef *t) {
+    if (!t) {
+        return;
+    }
+    free(t->custom_name);
+    t->custom_name = NULL;
+
+    if (t->func_sig) {
+        for (int i = 0; i < t->func_sig->param_count; i++) {
+            type_ref_cleanup(&t->func_sig->params[i]);
+        }
+        free(t->func_sig->params);
+        t->func_sig->params = NULL;
+        t->func_sig->param_count = 0;
+        t->func_sig->param_cap = 0;
+
+        if (t->func_sig->return_type) {
+            type_ref_cleanup(t->func_sig->return_type);
+            free(t->func_sig->return_type);
+            t->func_sig->return_type = NULL;
+        }
+
+        free(t->func_sig);
+        t->func_sig = NULL;
+    }
+
+    if (t->multi_sig) {
+        for (int i = 0; i < t->multi_sig->count; i++) {
+            type_ref_cleanup(&t->multi_sig->items[i]);
+        }
+        free(t->multi_sig->items);
+        t->multi_sig->items = NULL;
+        t->multi_sig->count = 0;
+        t->multi_sig->cap = 0;
+        free(t->multi_sig);
+        t->multi_sig = NULL;
+    }
+
+    if (t->list_elem_type) {
+        type_ref_cleanup(t->list_elem_type);
+        free(t->list_elem_type);
+        t->list_elem_type = NULL;
+    }
+    if (t->map_key_type) {
+        type_ref_cleanup(t->map_key_type);
+        free(t->map_key_type);
+        t->map_key_type = NULL;
+    }
+    if (t->map_value_type) {
+        type_ref_cleanup(t->map_value_type);
+        free(t->map_value_type);
+        t->map_value_type = NULL;
+    }
+    if (t->chan_elem_type) {
+        type_ref_cleanup(t->chan_elem_type);
+        free(t->chan_elem_type);
+        t->chan_elem_type = NULL;
+    }
+    t->kind = VT_INVALID;
+}
+
+static void param_cleanup(Param *param) {
+    if (!param) {
+        return;
+    }
+    free(param->name);
+    param->name = NULL;
+    type_ref_cleanup(&param->type);
+}
+
+static void field_decl_cleanup(FieldDecl *field) {
+    if (!field) {
+        return;
+    }
+    free(field->name);
+    field->name = NULL;
+    type_ref_cleanup(&field->type);
+}
+
+static void type_decl_cleanup(TypeDecl *decl) {
+    if (!decl) {
+        return;
+    }
+    free(decl->name);
+    decl->name = NULL;
+    for (int i = 0; i < decl->field_count; i++) {
+        field_decl_cleanup(&decl->fields[i]);
+    }
+    free(decl->fields);
+    decl->fields = NULL;
+    decl->field_count = 0;
+    decl->field_cap = 0;
+    free(decl);
+}
+
+static void interface_method_sig_cleanup(InterfaceMethodSig *method) {
+    if (!method) {
+        return;
+    }
+    free(method->name);
+    method->name = NULL;
+    for (int i = 0; i < method->param_count; i++) {
+        param_cleanup(&method->params[i]);
+    }
+    free(method->params);
+    method->params = NULL;
+    method->param_count = 0;
+    method->param_cap = 0;
+    type_ref_cleanup(&method->return_type);
+}
+
+static void interface_decl_cleanup(InterfaceDecl *decl) {
+    if (!decl) {
+        return;
+    }
+    free(decl->name);
+    decl->name = NULL;
+    for (int i = 0; i < decl->method_count; i++) {
+        interface_method_sig_cleanup(&decl->methods[i]);
+    }
+    free(decl->methods);
+    decl->methods = NULL;
+    decl->method_count = 0;
+    decl->method_cap = 0;
+    free(decl);
+}
+
+static void import_decl_cleanup(ImportDecl *decl) {
+    if (!decl) {
+        return;
+    }
+    free(decl->module);
+    decl->module = NULL;
+    free(decl->alias);
+    decl->alias = NULL;
+    for (int i = 0; i < decl->name_count; i++) {
+        free(decl->names[i]);
+    }
+    free(decl->names);
+    decl->names = NULL;
+    decl->name_count = 0;
+    decl->name_cap = 0;
+}
+
 static TypeRef parse_return_type_ref(Parser *p);
 
 static TypeRef parse_type_ref(Parser *p) {
@@ -457,25 +638,33 @@ static TypeRef parse_type_ref(Parser *p) {
 
         if (out.kind != VT_LIST && out.kind != VT_MAP && out.kind != VT_CHANNEL) {
             parser_error(p, t, "type '%s' does not support generic parameters", t.lexeme);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
 
         if (out.kind == VT_LIST || out.kind == VT_CHANNEL) {
             TypeRef elem_t = parse_type_ref(p);
             if (p->has_error) {
+                type_ref_cleanup(&out);
                 return make_type_ref(VT_INVALID, NULL);
             }
             if (elem_t.kind == VT_VOID || elem_t.kind == VT_INVALID) {
                 parser_error(p, parser_prev(p), "generic element type cannot be void/invalid");
+                type_ref_cleanup(&elem_t);
+                type_ref_cleanup(&out);
                 return make_type_ref(VT_INVALID, NULL);
             }
             if (parser_match(p, TOK_COMMA)) {
                 parser_error(p, parser_prev(p), "%s generic expects exactly one type argument",
                              out.kind == VT_LIST ? "list" : "chan");
+                type_ref_cleanup(&elem_t);
+                type_ref_cleanup(&out);
                 return make_type_ref(VT_INVALID, NULL);
             }
             parser_expect(p, TOK_RBRACKET, "expected ']' after generic type arguments");
             if (p->has_error) {
+                type_ref_cleanup(&elem_t);
+                type_ref_cleanup(&out);
                 return make_type_ref(VT_INVALID, NULL);
             }
             if (out.kind == VT_LIST) {
@@ -488,30 +677,47 @@ static TypeRef parse_type_ref(Parser *p) {
 
         TypeRef key_t = parse_type_ref(p);
         if (p->has_error) {
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         parser_expect(p, TOK_COMMA, "map generic expects two type arguments: map[key, value]");
         if (p->has_error) {
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         TypeRef value_t = parse_type_ref(p);
         if (p->has_error) {
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         if (parser_match(p, TOK_COMMA)) {
             parser_error(p, parser_prev(p), "map generic expects exactly two type arguments");
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&value_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         parser_expect(p, TOK_RBRACKET, "expected ']' after generic type arguments");
         if (p->has_error) {
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&value_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         if (key_t.kind != VT_STRING) {
             parser_error(p, t, "map key type must be string/str");
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&value_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         if (value_t.kind == VT_VOID || value_t.kind == VT_INVALID) {
             parser_error(p, parser_prev(p), "map value type cannot be void/invalid");
+            type_ref_cleanup(&key_t);
+            type_ref_cleanup(&value_t);
+            type_ref_cleanup(&out);
             return make_type_ref(VT_INVALID, NULL);
         }
         out.map_key_type = type_ref_box(key_t);
@@ -528,18 +734,19 @@ static TypeRef parse_type_ref(Parser *p) {
 
     parser_expect(p, TOK_LPAREN, "expected '(' in function type");
     if (p->has_error) {
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_func_type;
     }
 
     if (!parser_check(p, TOK_RPAREN)) {
         while (1) {
             TypeRef param_t = parse_type_ref(p);
             if (p->has_error) {
-                return make_type_ref(VT_INVALID, NULL);
+                goto fail_func_type;
             }
             if (param_t.kind == VT_VOID || param_t.kind == VT_INVALID) {
                 parser_error(p, parser_prev(p), "function type parameter cannot be void");
-                return make_type_ref(VT_INVALID, NULL);
+                type_ref_cleanup(&param_t);
+                goto fail_func_type;
             }
             type_ref_list_push(&out.func_sig->params, &out.func_sig->param_count, &out.func_sig->param_cap, param_t);
             if (!parser_match(p, TOK_COMMA)) {
@@ -550,16 +757,16 @@ static TypeRef parse_type_ref(Parser *p) {
 
     parser_expect(p, TOK_RPAREN, "expected ')' after function type parameters");
     if (p->has_error) {
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_func_type;
     }
     parser_expect(p, TOK_ARROW, "expected '->' after function type parameters");
     if (p->has_error) {
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_func_type;
     }
 
     TypeRef ret_t = parse_return_type_ref(p);
     if (p->has_error) {
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_func_type;
     }
     out.func_sig->return_type = (TypeRef *)calloc(1, sizeof(TypeRef));
     if (!out.func_sig->return_type) {
@@ -568,6 +775,10 @@ static TypeRef parse_type_ref(Parser *p) {
     }
     *out.func_sig->return_type = ret_t;
     return out;
+
+fail_func_type:
+    type_ref_cleanup(&out);
+    return make_type_ref(VT_INVALID, NULL);
 }
 
 static TypeRef parse_return_type_ref(Parser *p) {
@@ -585,11 +796,12 @@ static TypeRef parse_return_type_ref(Parser *p) {
     while (1) {
         TypeRef item_t = parse_type_ref(p);
         if (p->has_error) {
-            return make_type_ref(VT_INVALID, NULL);
+            goto fail_multi_type;
         }
         if (item_t.kind == VT_VOID || item_t.kind == VT_INVALID) {
             parser_error(p, parser_prev(p), "return type item cannot be void/invalid");
-            return make_type_ref(VT_INVALID, NULL);
+            type_ref_cleanup(&item_t);
+            goto fail_multi_type;
         }
         type_ref_list_push(&out.multi_sig->items, &out.multi_sig->count, &out.multi_sig->cap, item_t);
         if (!parser_match(p, TOK_COMMA)) {
@@ -599,13 +811,17 @@ static TypeRef parse_return_type_ref(Parser *p) {
 
     parser_expect(p, TOK_RPAREN, "expected ')' after return type list");
     if (p->has_error) {
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_multi_type;
     }
     if (out.multi_sig->count < 2) {
         parser_error(p, parser_prev(p), "multi return type requires at least two items");
-        return make_type_ref(VT_INVALID, NULL);
+        goto fail_multi_type;
     }
     return out;
+
+fail_multi_type:
+    type_ref_cleanup(&out);
+    return make_type_ref(VT_INVALID, NULL);
 }
 
 static Expr *parse_expr(Parser *p);

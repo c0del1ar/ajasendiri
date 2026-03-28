@@ -74,14 +74,105 @@
     return 1;
 }
 
+static long http_timeout_ms(void) {
+    const long default_timeout_ms = 10000;
+    const long max_timeout_ms = 300000;
+    const char *timeout_env = getenv("AJA_HTTP_TIMEOUT_MS");
+    long timeout_ms = default_timeout_ms;
+    if (timeout_env && timeout_env[0] != '\0') {
+        char *end = NULL;
+        long parsed = strtol(timeout_env, &end, 10);
+        if (end && *end == '\0' && parsed > 0) {
+            if (parsed > max_timeout_ms) {
+                timeout_ms = max_timeout_ms;
+            } else {
+                timeout_ms = parsed;
+            }
+        }
+    }
+    return timeout_ms;
+}
+
+static int http_apply_socket_timeouts(int fd, long timeout_ms, char *err, size_t err_cap) {
+    struct timeval rw_tv;
+    rw_tv.tv_sec = timeout_ms / 1000;
+    rw_tv.tv_usec = (timeout_ms % 1000) * 1000;
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &rw_tv, sizeof(rw_tv)) != 0 ||
+        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &rw_tv, sizeof(rw_tv)) != 0) {
+        snprintf(err, err_cap, "http socket timeout setup failed");
+        return 0;
+    }
+    return 1;
+}
+
+static int http_connect_nonblocking(int fd, const struct sockaddr *addr, socklen_t addr_len, long timeout_ms, char *err,
+                                    size_t err_cap) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) {
+        snprintf(err, err_cap, "http connect failed");
+        return 0;
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) != 0) {
+        snprintf(err, err_cap, "http connect failed");
+        return 0;
+    }
+    int conn_rc = connect(fd, addr, addr_len);
+    if (conn_rc != 0) {
+        if (errno != EINPROGRESS) {
+            (void)fcntl(fd, F_SETFL, flags);
+            snprintf(err, err_cap, "http connect failed");
+            return 0;
+        }
+        fd_set wfds;
+        FD_ZERO(&wfds);
+        FD_SET(fd, &wfds);
+        struct timeval tv;
+        tv.tv_sec = timeout_ms / 1000;
+        tv.tv_usec = (timeout_ms % 1000) * 1000;
+        int sel = select(fd + 1, NULL, &wfds, NULL, &tv);
+        if (sel <= 0) {
+            (void)fcntl(fd, F_SETFL, flags);
+            if (sel == 0) {
+                snprintf(err, err_cap, "http connect timeout");
+            } else {
+                snprintf(err, err_cap, "http connect failed");
+            }
+            return 0;
+        }
+        int so_error = 0;
+        socklen_t so_len = (socklen_t)sizeof(so_error);
+        if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &so_len) != 0 || so_error != 0) {
+            (void)fcntl(fd, F_SETFL, flags);
+            snprintf(err, err_cap, "http connect failed");
+            return 0;
+        }
+    }
+    if (fcntl(fd, F_SETFL, flags) != 0) {
+        snprintf(err, err_cap, "http connect failed");
+        return 0;
+    }
+    return 1;
+}
+
+static pthread_mutex_t g_http_dns_mu = PTHREAD_MUTEX_INITIALIZER;
+
 static int http_connect_tcp(const char *host, int port, char *err, size_t err_cap) {
+    long timeout_ms = http_timeout_ms();
     if (port <= 0 || port > 65535) {
         snprintf(err, err_cap, "http url has invalid port");
         return -1;
     }
 
+    struct in_addr resolved_addr;
+    int has_addr = 0;
+    pthread_mutex_lock(&g_http_dns_mu);
     struct hostent *he = gethostbyname(host);
-    if (!he || !he->h_addr_list || !he->h_addr_list[0]) {
+    if (he && he->h_addr_list && he->h_addr_list[0] && he->h_length == (int)sizeof(resolved_addr)) {
+        memcpy(&resolved_addr, he->h_addr_list[0], sizeof(resolved_addr));
+        has_addr = 1;
+    }
+    pthread_mutex_unlock(&g_http_dns_mu);
+    if (!has_addr) {
         snprintf(err, err_cap, "http connect failed");
         return -1;
     }
@@ -96,11 +187,17 @@ static int http_connect_tcp(const char *host, int port, char *err, size_t err_ca
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons((unsigned short)port);
-    memcpy(&addr.sin_addr, he->h_addr_list[0], (size_t)he->h_length);
+    memcpy(&addr.sin_addr, &resolved_addr, sizeof(resolved_addr));
 
-    if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+    char conn_err[128];
+    if (!http_connect_nonblocking(fd, (const struct sockaddr *)&addr, (socklen_t)sizeof(addr), timeout_ms, conn_err,
+                                  sizeof(conn_err))) {
         close(fd);
-        snprintf(err, err_cap, "http connect failed");
+        snprintf(err, err_cap, "%s", conn_err);
+        return -1;
+    }
+    if (!http_apply_socket_timeouts(fd, timeout_ms, err, err_cap)) {
+        close(fd);
         return -1;
     }
     return fd;
@@ -111,6 +208,32 @@ static int http_build_request(const char *method, const char *host, int port, in
     ReTextBuf req;
     char host_port[16];
     int add_port = (is_https && port != 443) || (!is_https && port != 80);
+    if (!method || !host || !path || (has_body && !body)) {
+        snprintf(err, err_cap, "http request has invalid components");
+        return 0;
+    }
+    if (path[0] != '/') {
+        snprintf(err, err_cap, "http request path must start with '/'");
+        return 0;
+    }
+    for (const unsigned char *p = (const unsigned char *)method; *p != '\0'; p++) {
+        if (*p < 0x20 || *p == 0x7f) {
+            snprintf(err, err_cap, "http request has invalid method");
+            return 0;
+        }
+    }
+    for (const unsigned char *p = (const unsigned char *)host; *p != '\0'; p++) {
+        if (*p <= 0x20 || *p == 0x7f) {
+            snprintf(err, err_cap, "http request has invalid host");
+            return 0;
+        }
+    }
+    for (const unsigned char *p = (const unsigned char *)path; *p != '\0'; p++) {
+        if (*p < 0x20 || *p == 0x7f) {
+            snprintf(err, err_cap, "http request has invalid path");
+            return 0;
+        }
+    }
     if (!re_text_buf_init(&req)) {
         snprintf(err, err_cap, "out of memory");
         return 0;
@@ -156,6 +279,22 @@ static int http_build_request(const char *method, const char *host, int port, in
 }
 
 static int http_read_response_fd(int fd, ReTextBuf *resp, char *err, size_t err_cap) {
+    const size_t default_max_bytes = 8U * 1024U * 1024U;
+    const size_t hard_cap_bytes = 256U * 1024U * 1024U;
+    const char *max_env = getenv("AJA_HTTP_MAX_RESPONSE_BYTES");
+    size_t max_bytes = default_max_bytes;
+    if (max_env && max_env[0] != '\0') {
+        char *end = NULL;
+        unsigned long long parsed = strtoull(max_env, &end, 10);
+        if (end && *end == '\0' && parsed > 0) {
+            if (parsed > (unsigned long long)hard_cap_bytes) {
+                max_bytes = hard_cap_bytes;
+            } else {
+                max_bytes = (size_t)parsed;
+            }
+        }
+    }
+
     ReTextBuf out;
     if (!re_text_buf_init(&out)) {
         snprintf(err, err_cap, "out of memory");
@@ -175,6 +314,11 @@ static int http_read_response_fd(int fd, ReTextBuf *resp, char *err, size_t err_
         if (n == 0) {
             break;
         }
+        if ((size_t)n > max_bytes || out.len > max_bytes - (size_t)n) {
+            free(out.buf);
+            snprintf(err, err_cap, "http response too large");
+            return 0;
+        }
         if (!re_text_buf_push_n(&out, chunk, (size_t)n)) {
             free(out.buf);
             snprintf(err, err_cap, "out of memory");
@@ -186,6 +330,22 @@ static int http_read_response_fd(int fd, ReTextBuf *resp, char *err, size_t err_
 }
 
 static int http_read_response_ssl(SSL *ssl, ReTextBuf *out_resp, char *err, size_t err_cap) {
+    const size_t default_max_bytes = 8U * 1024U * 1024U;
+    const size_t hard_cap_bytes = 256U * 1024U * 1024U;
+    const char *max_env = getenv("AJA_HTTP_MAX_RESPONSE_BYTES");
+    size_t max_bytes = default_max_bytes;
+    if (max_env && max_env[0] != '\0') {
+        char *end = NULL;
+        unsigned long long parsed = strtoull(max_env, &end, 10);
+        if (end && *end == '\0' && parsed > 0) {
+            if (parsed > (unsigned long long)hard_cap_bytes) {
+                max_bytes = hard_cap_bytes;
+            } else {
+                max_bytes = (size_t)parsed;
+            }
+        }
+    }
+
     ReTextBuf resp;
     if (!re_text_buf_init(&resp)) {
         snprintf(err, err_cap, "out of memory");
@@ -196,6 +356,11 @@ static int http_read_response_ssl(SSL *ssl, ReTextBuf *out_resp, char *err, size
     while (1) {
         int n = SSL_read(ssl, chunk, (int)sizeof(chunk));
         if (n > 0) {
+            if ((size_t)n > max_bytes || resp.len > max_bytes - (size_t)n) {
+                free(resp.buf);
+                snprintf(err, err_cap, "http response too large");
+                return 0;
+            }
             if (!re_text_buf_push_n(&resp, chunk, (size_t)n)) {
                 free(resp.buf);
                 snprintf(err, err_cap, "out of memory");
@@ -288,6 +453,31 @@ static int http_request_over_tls(const char *method, const char *host, int port,
         snprintf(err, err_cap, "https tls init failed");
         return 0;
     }
+    X509_VERIFY_PARAM *verify_param = SSL_get0_param(ssl);
+    if (!verify_param) {
+        SSL_free(ssl);
+        SSL_CTX_free(ctx);
+        close(fd);
+        snprintf(err, err_cap, "https tls init failed");
+        return 0;
+    }
+    struct in_addr ip4;
+    struct in6_addr ip6;
+    if (inet_pton(AF_INET, host, &ip4) == 1 || inet_pton(AF_INET6, host, &ip6) == 1) {
+        if (X509_VERIFY_PARAM_set1_ip_asc(verify_param, host) != 1) {
+            SSL_free(ssl);
+            SSL_CTX_free(ctx);
+            close(fd);
+            snprintf(err, err_cap, "https tls init failed");
+            return 0;
+        }
+    } else if (SSL_set1_host(ssl, host) != 1) {
+        SSL_free(ssl);
+        SSL_CTX_free(ctx);
+        close(fd);
+        snprintf(err, err_cap, "https tls init failed");
+        return 0;
+    }
     if (SSL_set_fd(ssl, fd) != 1) {
         SSL_free(ssl);
         SSL_CTX_free(ctx);
@@ -362,6 +552,10 @@ static int http_response_set_file_headers(MapValue *headers, const char *body) {
 static int http_request_exec(const char *method, const char *url, const char *body, int has_body, int require_2xx,
                              int with_headers, HttpResponseParsed *out, char *err, size_t err_cap) {
     http_response_parsed_init(out);
+    if (!method || !url || (has_body && !body)) {
+        snprintf(err, err_cap, "http request has invalid components");
+        return 0;
+    }
     if (!http_url_is_safe(url)) {
         snprintf(err, err_cap, "http url contains unsupported characters");
         return 0;
@@ -434,18 +628,10 @@ static TypeRef http_simple_type_ref(ValueType kind) {
 }
 
 static Value http_make_response_object(Runtime *rt, int line, HttpResponseParsed *resp) {
-    MapValue *headers = resp->headers;
-    if (!headers) {
-        headers = map_new(VT_STRING, NULL);
-        if (!headers) {
-            runtime_error(rt, line, "out of memory");
-            return value_invalid();
-        }
-    }
-
     ObjectValue *obj = (ObjectValue *)calloc(1, sizeof(ObjectValue));
     if (!obj) {
         runtime_error(rt, line, "out of memory");
+        http_response_parsed_cleanup(resp);
         return value_invalid();
     }
     obj->type_name = xstrdup("HttpResponse");
@@ -453,31 +639,67 @@ static Value http_make_response_object(Runtime *rt, int line, HttpResponseParsed
     obj->fields = (ObjectFieldDef *)calloc(3, sizeof(ObjectFieldDef));
     obj->values = (Value *)calloc(3, sizeof(Value));
     if (!obj->type_name || !obj->fields || !obj->values) {
-        runtime_error(rt, line, "out of memory");
-        return value_invalid();
+        goto oom_fail;
     }
 
     obj->fields[0].name = xstrdup("status");
     obj->fields[0].type = http_simple_type_ref(VT_INT);
     obj->values[0] = value_int(resp->status);
 
-    obj->fields[1].name = xstrdup("headers");
-    obj->fields[1].type = http_simple_type_ref(VT_MAP);
-    obj->values[1] = value_map(headers);
-
     obj->fields[2].name = xstrdup("body");
     obj->fields[2].type = http_simple_type_ref(VT_STRING);
     obj->values[2].type = VT_STRING;
-    obj->values[2].as.s = resp->body ? resp->body : xstrdup("");
+    int body_from_resp = resp->body != NULL;
+    obj->values[2].as.s = body_from_resp ? resp->body : xstrdup("");
 
-    if (!obj->fields[0].name || !obj->fields[1].name || !obj->fields[2].name || !obj->values[2].as.s) {
-        runtime_error(rt, line, "out of memory");
-        return value_invalid();
+    if (!obj->fields[0].name || !obj->fields[2].name || !obj->values[2].as.s) {
+        if (!body_from_resp && obj->values[2].as.s) {
+            free(obj->values[2].as.s);
+            obj->values[2].as.s = NULL;
+        }
+        goto oom_fail;
     }
 
+    obj->fields[1].name = xstrdup("headers");
+    obj->fields[1].type = http_simple_type_ref(VT_MAP);
+    if (!obj->fields[1].name) {
+        if (!body_from_resp) {
+            free(obj->values[2].as.s);
+            obj->values[2].as.s = NULL;
+        }
+        goto oom_fail;
+    }
+
+    MapValue *headers = resp->headers;
+    if (!headers) {
+        headers = map_new(VT_STRING, NULL);
+        if (!headers) {
+            if (!body_from_resp) {
+                free(obj->values[2].as.s);
+                obj->values[2].as.s = NULL;
+            }
+            goto oom_fail;
+        }
+    }
+
+    obj->values[1] = value_map(headers);
+
+    runtime_note_alloc_object();
     resp->headers = NULL;
     resp->body = NULL;
     return value_object(obj);
+
+oom_fail:
+    runtime_error(rt, line, "out of memory");
+    free(obj->fields[0].name);
+    free(obj->fields[1].name);
+    free(obj->fields[2].name);
+    free(obj->fields);
+    free(obj->values);
+    free(obj->type_name);
+    free(obj);
+    http_response_parsed_cleanup(resp);
+    return value_invalid();
 }
 
 static char *http_request_text(const char *method, const char *url, const char *body, int has_body, char *err,
@@ -510,4 +732,3 @@ static unsigned long long rand_next_u64(Runtime *rt) {
     rt->rand_state = x;
     return x * 2685821657736338717ULL;
 }
-

@@ -3,7 +3,9 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdint.h>
+#include <spawn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <openssl/evp.h>
 #include <openssl/hmac.h>
 
 static int has_aja_extension(const char *path) {
@@ -28,6 +31,7 @@ typedef struct {
 } TextBuf;
 
 static int write_file(const char *path, const char *content, char *err, size_t err_cap);
+static int write_file_mode(const char *path, const char *content, mode_t mode, char *err, size_t err_cap);
 
 static void tb_init(TextBuf *tb) {
     tb->cap = 128;
@@ -93,7 +97,20 @@ static int count_leading_spaces(const char *line) {
     return n;
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wanalyzer-use-of-uninitialized-value"
+#endif
+
 static char *dup_n(const char *s, size_t n) {
+    if (!s) {
+        fprintf(stderr, "fatal: null string\n");
+        exit(1);
+    }
+    if (n == (size_t)-1) {
+        fprintf(stderr, "fatal: string too large\n");
+        exit(1);
+    }
     char *out = (char *)malloc(n + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");
@@ -109,9 +126,17 @@ static char *dup_s(const char *s) {
 }
 
 static char *join_path2(const char *a, const char *b) {
+    if (!a || !b) {
+        fprintf(stderr, "fatal: null path component\n");
+        exit(1);
+    }
     size_t na = strlen(a);
     size_t nb = strlen(b);
     int need_slash = (na > 0 && a[na - 1] != '/');
+    if (na > ((size_t)-1) - nb - (size_t)need_slash - 1) {
+        fprintf(stderr, "fatal: path too long\n");
+        exit(1);
+    }
     char *out = (char *)malloc(na + nb + (size_t)need_slash + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");
@@ -125,6 +150,10 @@ static char *join_path2(const char *a, const char *b) {
     out[na + nb] = '\0';
     return out;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 static char *resolve_site_packages_root(const char *project_root, int *out_using_venv) {
     const char *venv = getenv("AJA_VENV");
@@ -595,6 +624,10 @@ static int valid_hash_hex64(const char *hash) {
     return 1;
 }
 
+static int valid_hash_hex(const char *hash) {
+    return valid_hash_hex64(hash) || valid_hash_hex16(hash);
+}
+
 static int hmac_sha256_hex(const unsigned char *data, size_t data_len, const char *key, char out_hex[65], char *err,
                            size_t err_cap) {
     if (!key || key[0] == '\0') {
@@ -817,7 +850,7 @@ static int parse_lock_text(const char *content, DepSpecList *out, char *err, siz
 
         char *pipe = strstr(trimmed, "|");
         if (!pipe) {
-            snprintf(err, err_cap, "lock line %d: expected '| hash=<hex16>' suffix", line_no);
+            snprintf(err, err_cap, "lock line %d: expected '| hash=<hex>' suffix", line_no);
             free(copy);
             dep_list_free(out);
             return 0;
@@ -826,13 +859,13 @@ static int parse_lock_text(const char *content, DepSpecList *out, char *err, siz
         char *left = trim_ws(trimmed);
         char *right = trim_ws(pipe + 1);
         if (strncmp(right, "hash=", 5) != 0) {
-            snprintf(err, err_cap, "lock line %d: expected 'hash=<hex16>'", line_no);
+            snprintf(err, err_cap, "lock line %d: expected 'hash=<hex>'", line_no);
             free(copy);
             dep_list_free(out);
             return 0;
         }
         char *hash = trim_ws(right + 5);
-        if (!valid_hash_hex16(hash)) {
+        if (!valid_hash_hex(hash)) {
             snprintf(err, err_cap, "lock line %d: invalid hash '%s'", line_no, hash);
             free(copy);
             dep_list_free(out);

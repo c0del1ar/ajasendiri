@@ -461,6 +461,10 @@ static Value eval_expr(Runtime *rt, Module *current_module, Env *env, Expr *expr
         }
 
         size_t out_len = (size_t)(end - start);
+        if (out_len == (size_t)-1) {
+            runtime_error(rt, expr->line, "slice too large");
+            return value_invalid();
+        }
         char *buf = (char *)malloc(out_len + 1);
         if (!buf) {
             runtime_error(rt, expr->line, "out of memory");
@@ -517,6 +521,12 @@ static Value eval_expr(Runtime *rt, Module *current_module, Env *env, Expr *expr
 
             size_t n1 = strlen(m->namespace);
             size_t n2 = strlen(right);
+            if (n1 > ((size_t)-1) - n2 - 2) {
+                runtime_error(rt, expr->line, "out of memory");
+                free(left);
+                free(right);
+                return value_invalid();
+            }
             char *qualified = (char *)malloc(n1 + n2 + 2);
             if (!qualified) {
                 runtime_error(rt, expr->line, "out of memory");

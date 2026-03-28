@@ -13,7 +13,7 @@
     return value_invalid();
 }
 
-static ValueType g_sort_elem_type = VT_INVALID;
+static _Thread_local ValueType g_sort_elem_type = VT_INVALID;
 
 static int sort_value_cmp(const void *a, const void *b) {
     const Value *va = (const Value *)a;
@@ -228,7 +228,7 @@ static Value invoke_user_function_with_args(Runtime *rt, const char *display_nam
     }
 
     for (int i = 0; i < fn->param_count; i++) {
-        Value arg_value = value_invalid();
+        Value arg_value;
         if (bound_set[i]) {
             arg_value = bound_values[i];
         } else if (fn->params[i].default_expr) {
@@ -356,6 +356,24 @@ typedef struct {
 
 static void *kostroutine_worker(void *arg);
 
+static int kostroutine_max_threads(void) {
+    const int default_max = 1024;
+    const int hard_max = 100000;
+    const char *env_v = getenv("AJA_KOSTROUTINE_MAX");
+    if (!env_v || env_v[0] == '\0') {
+        return default_max;
+    }
+    char *end = NULL;
+    long parsed = strtol(env_v, &end, 10);
+    if (!end || *end != '\0' || parsed <= 0) {
+        return default_max;
+    }
+    if (parsed > hard_max) {
+        return hard_max;
+    }
+    return (int)parsed;
+}
+
 static int schedule_kostroutine_call(Runtime *rt, Module *current_module, Env *env, Expr *call_expr, int line) {
     if (!call_expr || call_expr->kind != EX_CALL || !call_expr->as.call.callee ||
         call_expr->as.call.callee->kind != EX_IDENT) {
@@ -405,6 +423,11 @@ static int schedule_kostroutine_call(Runtime *rt, Module *current_module, Env *e
     }
     if (callee.type != VT_FUNCTION || callee.as.func == NULL || callee.as.func->fn == NULL) {
         runtime_error(rt, line, "kostroutine target must be function, got %s", value_type_name(callee.type));
+        return 0;
+    }
+    int max_threads = kostroutine_max_threads();
+    if (rt->kostroutine_thread_count >= max_threads) {
+        runtime_error(rt, line, "kostroutine limit reached (%d); set AJA_KOSTROUTINE_MAX to tune", max_threads);
         return 0;
     }
 
@@ -497,6 +520,7 @@ static int schedule_kostroutine_call(Runtime *rt, Module *current_module, Env *e
 static void *kostroutine_worker(void *arg) {
     KostroutineThreadCtx *ctx = (KostroutineThreadCtx *)arg;
     Runtime rt_local = ctx->seed;
+    runtime_set_current(&rt_local);
     rt_local.has_error = 0;
     rt_local.err[0] = '\0';
     rt_local.call_frames = NULL;
@@ -524,6 +548,7 @@ static void *kostroutine_worker(void *arg) {
         ctx->failed = 1;
         snprintf(ctx->err, sizeof(ctx->err), "%s", rt_local.err);
     }
+    runtime_set_current(NULL);
     return NULL;
 }
 
@@ -565,6 +590,23 @@ static int run_kostroutines(Runtime *rt) {
 
     rt->kostroutine_draining = 0;
     return !rt->has_error;
+}
+
+typedef struct {
+    ChannelValue *ch;
+    long long delay_ms;
+} TimeAfterTask;
+
+static void *time_after_worker(void *arg) {
+    TimeAfterTask *task = (TimeAfterTask *)arg;
+    if (task->delay_ms > 0) {
+        runtime_sleep_ms(task->delay_ms);
+    }
+    char ch_err[128];
+    (void)channel_send(task->ch, value_bool(1), 0, ch_err, sizeof(ch_err));
+    (void)channel_close(task->ch, ch_err, sizeof(ch_err));
+    free(task);
+    return NULL;
 }
 
 static double approx_sqrt(double x) {
@@ -701,6 +743,59 @@ static Value native_time_call(Runtime *rt, Module *current_module, Env *env, Exp
             runtime_sleep_ms(ms_v.as.i);
         }
         return value_void();
+    }
+    if (strcmp(fn_name, "after") == 0) {
+        if (call_expr->as.call.arg_count != 1) {
+            runtime_error(rt, call_expr->line, "function 'time.after' expects 1 arg, got %d",
+                          call_expr->as.call.arg_count);
+            return value_invalid();
+        }
+        const char *param_names[1] = {"ms"};
+        Value args_v[1];
+        int args_set[1] = {0};
+        if (!bind_named_call_args(rt, current_module, env, call_expr, "time.after", param_names, 1, args_v, args_set)) {
+            return value_invalid();
+        }
+        if (!ensure_required_call_args(rt, call_expr, "time.after", param_names, 1, args_set)) {
+            return value_invalid();
+        }
+        Value ms_v = args_v[0];
+        if (ms_v.type != VT_INT) {
+            runtime_error(rt, call_expr->line, "time.after(...) expects int milliseconds, got %s",
+                          value_type_name(ms_v.type));
+            return value_invalid();
+        }
+        if (ms_v.as.i < 0) {
+            runtime_error(rt, call_expr->line, "time.after(...) expects non-negative milliseconds, got %lld", ms_v.as.i);
+            return value_invalid();
+        }
+
+        ChannelValue *ch = channel_new(1);
+        if (!ch) {
+            runtime_error(rt, call_expr->line, "out of memory");
+            return value_invalid();
+        }
+
+        if (rt->check_only) {
+            return value_channel(ch);
+        }
+
+        TimeAfterTask *task = (TimeAfterTask *)calloc(1, sizeof(TimeAfterTask));
+        if (!task) {
+            runtime_error(rt, call_expr->line, "out of memory");
+            return value_invalid();
+        }
+        task->ch = ch;
+        task->delay_ms = ms_v.as.i;
+
+        pthread_t th;
+        if (pthread_create(&th, NULL, time_after_worker, task) != 0) {
+            free(task);
+            runtime_error(rt, call_expr->line, "failed to start timer thread");
+            return value_invalid();
+        }
+        pthread_detach(th);
+        return value_channel(ch);
     }
     runtime_error(rt, call_expr->line, "undefined function 'time.%s'", fn_name);
     return value_invalid();

@@ -33,23 +33,25 @@ static TypeDecl *parse_type_decl(Parser *p) {
 
         Token field_name = parser_expect(p, TOK_IDENT, "expected field name in type declaration");
         if (p->has_error) {
-            return NULL;
+            goto fail_type_decl;
         }
         parser_expect(p, TOK_COLON, "expected ':' after field name");
         if (p->has_error) {
-            return NULL;
+            goto fail_type_decl;
         }
         TypeRef parsed = parse_type_ref(p);
         if (p->has_error) {
-            return NULL;
+            goto fail_type_decl;
         }
         if (parsed.kind == VT_VOID || parsed.kind == VT_INVALID) {
             parser_error(p, parser_prev(p), "field '%s' cannot use void/invalid type", field_name.lexeme);
-            return NULL;
+            type_ref_cleanup(&parsed);
+            goto fail_type_decl;
         }
         parser_expect(p, TOK_NEWLINE, "expected newline after field declaration");
         if (p->has_error) {
-            return NULL;
+            type_ref_cleanup(&parsed);
+            goto fail_type_decl;
         }
 
         FieldDecl field;
@@ -60,13 +62,17 @@ static TypeDecl *parse_type_decl(Parser *p) {
 
     parser_expect(p, TOK_DEDENT, "expected dedent after type body");
     if (p->has_error) {
-        return NULL;
+        goto fail_type_decl;
     }
     if (decl->field_count == 0) {
         parser_error(p, name_tok, "type '%s' must declare at least one field", name_tok.lexeme);
-        return NULL;
+        goto fail_type_decl;
     }
     return decl;
+
+fail_type_decl:
+    type_decl_cleanup(decl);
+    return NULL;
 }
 
 static InterfaceDecl *parse_interface_decl(Parser *p) {
@@ -104,13 +110,13 @@ static InterfaceDecl *parse_interface_decl(Parser *p) {
 
         Token method_name = parser_expect(p, TOK_IDENT, "expected method signature in interface");
         if (p->has_error) {
-            return NULL;
+            goto fail_interface_decl;
         }
         for (int i = 0; i < decl->method_count; i++) {
             if (strcmp(decl->methods[i].name, method_name.lexeme) == 0) {
                 parser_error(p, method_name, "duplicate method '%s' in interface '%s'", method_name.lexeme,
                              decl->name);
-                return NULL;
+                goto fail_interface_decl;
             }
         }
 
@@ -122,25 +128,31 @@ static InterfaceDecl *parse_interface_decl(Parser *p) {
 
         parser_expect(p, TOK_LPAREN, "expected '(' after interface method name");
         if (p->has_error) {
-            return NULL;
+            interface_method_sig_cleanup(&method);
+            goto fail_interface_decl;
         }
         if (!parser_check(p, TOK_RPAREN)) {
             while (1) {
                 Token pname = parser_expect(p, TOK_IDENT, "expected parameter name");
                 if (p->has_error) {
-                    return NULL;
+                    interface_method_sig_cleanup(&method);
+                    goto fail_interface_decl;
                 }
                 parser_expect(p, TOK_COLON, "expected ':' after parameter name");
                 if (p->has_error) {
-                    return NULL;
+                    interface_method_sig_cleanup(&method);
+                    goto fail_interface_decl;
                 }
                 TypeRef ptype = parse_type_ref(p);
                 if (p->has_error) {
-                    return NULL;
+                    interface_method_sig_cleanup(&method);
+                    goto fail_interface_decl;
                 }
                 if (ptype.kind == VT_VOID || ptype.kind == VT_INVALID) {
                     parser_error(p, parser_prev(p), "parameter '%s' cannot use void/invalid type", pname.lexeme);
-                    return NULL;
+                    type_ref_cleanup(&ptype);
+                    interface_method_sig_cleanup(&method);
+                    goto fail_interface_decl;
                 }
                 Param param;
                 param.name = xstrdup(pname.lexeme);
@@ -157,17 +169,20 @@ static InterfaceDecl *parse_interface_decl(Parser *p) {
         }
         parser_expect(p, TOK_RPAREN, "expected ')' after parameter list");
         if (p->has_error) {
-            return NULL;
+            interface_method_sig_cleanup(&method);
+            goto fail_interface_decl;
         }
         if (parser_match(p, TOK_ARROW)) {
             method.return_type = parse_return_type_ref(p);
             if (p->has_error) {
-                return NULL;
+                interface_method_sig_cleanup(&method);
+                goto fail_interface_decl;
             }
         }
         parser_expect(p, TOK_NEWLINE, "expected newline after interface method signature");
         if (p->has_error) {
-            return NULL;
+            interface_method_sig_cleanup(&method);
+            goto fail_interface_decl;
         }
 
         interface_method_list_push(&decl->methods, &decl->method_count, &decl->method_cap, method);
@@ -175,13 +190,17 @@ static InterfaceDecl *parse_interface_decl(Parser *p) {
 
     parser_expect(p, TOK_DEDENT, "expected dedent after interface body");
     if (p->has_error) {
-        return NULL;
+        goto fail_interface_decl;
     }
     if (decl->method_count == 0) {
         parser_error(p, name_tok, "interface '%s' must declare at least one method", name_tok.lexeme);
-        return NULL;
+        goto fail_interface_decl;
     }
     return decl;
+
+fail_interface_decl:
+    interface_decl_cleanup(decl);
+    return NULL;
 }
 
 static int parse_import_decl(Parser *p, Program *prog) {
@@ -200,6 +219,7 @@ static int parse_import_decl(Parser *p, Program *prog) {
         }
 
         ImportDecl decl;
+        int decl_pushed = 0;
         int entry_line = -1;
         memset(&decl, 0, sizeof(decl));
 
@@ -210,11 +230,12 @@ static int parse_import_decl(Parser *p, Program *prog) {
             if (parser_match(p, TOK_AS)) {
                 Token alias_tok = parser_expect(p, TOK_IDENT, "expected alias name after 'as'");
                 if (p->has_error) {
-                    return 0;
+                    goto fail_import_entry;
                 }
                 decl.alias = xstrdup(alias_tok.lexeme);
             }
             import_list_push(&prog->imports, &prog->import_count, &prog->import_cap, decl);
+            decl_pushed = 1;
             imported_entries++;
             entry_line = mod.line;
         } else if (parser_match(p, TOK_LBRACE)) {
@@ -227,58 +248,66 @@ static int parse_import_decl(Parser *p, Program *prog) {
                 }
                 Token name = parser_expect(p, TOK_IDENT, "expected identifier in import list");
                 if (p->has_error) {
-                    return 0;
+                    goto fail_import_entry;
                 }
                 export_list_push(&decl.names, &decl.name_count, &decl.name_cap, xstrdup(name.lexeme));
                 if (parser_match(p, TOK_COMMA)) {
                     parser_error(p, parser_prev(p),
                                  "commas are not allowed in import lists; put each entry on its own line");
-                    return 0;
+                    goto fail_import_entry;
                 }
                 parser_skip_layout(p);
             }
 
             parser_expect(p, TOK_RBRACE, "expected '}' in selective import");
             if (p->has_error) {
-                return 0;
+                goto fail_import_entry;
             }
             if (decl.name_count == 0) {
                 parser_error(p, parser_prev(p), "selective import list cannot be empty");
-                return 0;
+                goto fail_import_entry;
             }
             parser_expect(p, TOK_FROM, "expected 'from' after selective import list");
             if (p->has_error) {
-                return 0;
+                goto fail_import_entry;
             }
             Token mod = parser_expect(p, TOK_STRING, "expected module string after from");
             if (p->has_error) {
-                return 0;
+                goto fail_import_entry;
             }
             decl.module = xstrdup(mod.lexeme);
             if (parser_match(p, TOK_AS)) {
                 parser_error(p, parser_prev(p), "alias is only allowed for import-all entries");
-                return 0;
+                goto fail_import_entry;
             }
             import_list_push(&prog->imports, &prog->import_count, &prog->import_cap, decl);
+            decl_pushed = 1;
             imported_entries++;
             entry_line = list_open.line;
         } else {
             parser_error(p, parser_peek(p), "invalid import entry");
-            return 0;
+            goto fail_import_entry;
         }
 
         if (imported_entries > 1 && entry_line == last_entry_line) {
             parser_error(p, parser_prev(p), "multiple import entries on one line are not allowed");
-            return 0;
+            goto fail_import_entry;
         }
         last_entry_line = entry_line;
 
         if (parser_match(p, TOK_COMMA)) {
             parser_error(p, parser_prev(p),
                          "commas are not allowed in import lists; put each module on its own line");
-            return 0;
+            goto fail_import_entry;
         }
         parser_skip_layout(p);
+        continue;
+
+fail_import_entry:
+        if (!decl_pushed) {
+            import_decl_cleanup(&decl);
+        }
+        return 0;
     }
 
     parser_expect(p, TOK_RPAREN, "expected ')' after import block");

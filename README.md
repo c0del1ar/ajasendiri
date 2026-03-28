@@ -21,7 +21,9 @@ Ajasendiri is a high-level interpreted programming language written in C, built 
 - Interfaces (Go-style implicit implementation)
 - Import/export with alias and selective import forms
 - Concurrency with `kostroutine`, `chan`, `select`, `waitAll`
+- Timeout channels via `time.after(ms)` for Go-style timeout patterns
 - Built-in modules: `math`, `time`, `json`, `fs`, `http`, `rand`, `os`, `path`
+- Memory visibility with `memStats()` and `memCollect()`
 - Package/dependency tooling via `mmk` (including local registry flow)
 - REPL, formatter, checker, debugger, test runner, and LSP helper
 
@@ -104,6 +106,7 @@ print(total)
 ./ajasendiri fmt path/to/file.aja   # Format code
 ./ajasendiri debug file.aja         # Debug mode
 ./ajasendiri venv .venv             # Create virtual environment
+make ci                             # Full local CI gate (check+fmt+test+docs)
 python3 tools/ajasendiri_lsp.py     # Language server
 ```
 

@@ -61,6 +61,7 @@ static ExecResult exec_stmt(Runtime *rt, Module *current_module, Env *env, Stmt 
         if (env_get(env, stmt->as.assign.name, &current) && current.type == VT_INTERFACE && current.as.iface != NULL &&
             current.as.iface->interface_name != NULL) {
             TypeRef expected_iface;
+            memset(&expected_iface, 0, sizeof(expected_iface));
             expected_iface.kind = VT_OBJECT;
             expected_iface.custom_name = current.as.iface->interface_name;
             expected_iface.func_sig = NULL;
@@ -143,8 +144,8 @@ static ExecResult exec_stmt(Runtime *rt, Module *current_module, Env *env, Stmt 
     }
 
     if (stmt->kind == ST_INDEX_ASSIGN) {
-        Value target;
-        if (!env_get(env, stmt->as.index_assign.name, &target)) {
+        Value *target = env_get_mut(env, stmt->as.index_assign.name);
+        if (!target) {
             runtime_error(rt, stmt->line, "undefined variable '%s'", stmt->as.index_assign.name);
             return out;
         }
@@ -158,36 +159,36 @@ static ExecResult exec_stmt(Runtime *rt, Module *current_module, Env *env, Stmt 
         if (rt->has_error) {
             return out;
         }
-        if (target.type == VT_LIST) {
+        if (target->type == VT_LIST) {
             if (idx.type != VT_INT) {
                 runtime_error(rt, stmt->line, "list index must be int, got %s", value_type_name(idx.type));
                 return out;
             }
-            if (idx.as.i < 0 || idx.as.i >= target.as.list->count) {
+            if (idx.as.i < 0 || idx.as.i >= target->as.list->count) {
                 runtime_error(rt, stmt->line, "list index out of range: %lld", idx.as.i);
                 return out;
             }
-            if (target.as.list->elem_type != VT_INVALID && rhs.type != target.as.list->elem_type) {
+            if (target->as.list->elem_type != VT_INVALID && rhs.type != target->as.list->elem_type) {
                 runtime_error(rt, stmt->line, "type mismatch for list '%s': expected %s, got %s",
-                              stmt->as.index_assign.name, value_type_name(target.as.list->elem_type),
+                              stmt->as.index_assign.name, value_type_name(target->as.list->elem_type),
                               value_type_name(rhs.type));
                 return out;
             }
-            if (target.as.list->elem_type == VT_OBJECT && target.as.list->elem_object_type != NULL) {
+            if (target->as.list->elem_type == VT_OBJECT && target->as.list->elem_object_type != NULL) {
                 if (rhs.type != VT_OBJECT || rhs.as.obj == NULL ||
-                    strcmp(rhs.as.obj->type_name, target.as.list->elem_object_type) != 0) {
+                    strcmp(rhs.as.obj->type_name, target->as.list->elem_object_type) != 0) {
                     runtime_error(rt, stmt->line, "type mismatch for list '%s': expected %s, got %s",
-                                  stmt->as.index_assign.name, target.as.list->elem_object_type,
+                                  stmt->as.index_assign.name, target->as.list->elem_object_type,
                                   rhs.type == VT_OBJECT && rhs.as.obj ? rhs.as.obj->type_name : value_type_name(rhs.type));
                     return out;
                 }
             }
 
-            target.as.list->items[idx.as.i] = rhs;
+            target->as.list->items[idx.as.i] = rhs;
             return out;
         }
 
-        if (target.type == VT_MAP) {
+        if (target->type == VT_MAP) {
             if (idx.type != VT_STRING) {
                 runtime_error(rt, stmt->line, "map index must be string, got %s", value_type_name(idx.type));
                 return out;
@@ -196,32 +197,32 @@ static ExecResult exec_stmt(Runtime *rt, Module *current_module, Env *env, Stmt 
                 runtime_error(rt, stmt->line, "map value cannot be %s", value_type_name(rhs.type));
                 return out;
             }
-            if (target.as.map->value_type == VT_INVALID) {
-                target.as.map->value_type = rhs.type;
+            if (target->as.map->value_type == VT_INVALID) {
+                target->as.map->value_type = rhs.type;
                 if (rhs.type == VT_OBJECT && rhs.as.obj != NULL) {
-                    target.as.map->value_object_type = xstrdup(rhs.as.obj->type_name);
+                    target->as.map->value_object_type = xstrdup(rhs.as.obj->type_name);
                 }
-            } else if (target.as.map->value_type != rhs.type) {
+            } else if (target->as.map->value_type != rhs.type) {
                 runtime_error(rt, stmt->line, "type mismatch for map '%s': expected %s, got %s",
-                              stmt->as.index_assign.name, value_type_name(target.as.map->value_type),
+                              stmt->as.index_assign.name, value_type_name(target->as.map->value_type),
                               value_type_name(rhs.type));
                 return out;
-            } else if (target.as.map->value_type == VT_OBJECT && target.as.map->value_object_type != NULL &&
+            } else if (target->as.map->value_type == VT_OBJECT && target->as.map->value_object_type != NULL &&
                        (rhs.type != VT_OBJECT || rhs.as.obj == NULL ||
-                        strcmp(rhs.as.obj->type_name, target.as.map->value_object_type) != 0)) {
+                        strcmp(rhs.as.obj->type_name, target->as.map->value_object_type) != 0)) {
                 runtime_error(rt, stmt->line, "type mismatch for map '%s': expected %s, got %s",
-                              stmt->as.index_assign.name, target.as.map->value_object_type,
+                              stmt->as.index_assign.name, target->as.map->value_object_type,
                               rhs.type == VT_OBJECT && rhs.as.obj ? rhs.as.obj->type_name : value_type_name(rhs.type));
                 return out;
             }
-            if (!map_set(target.as.map, idx.as.s, rhs)) {
+            if (!map_set(target->as.map, idx.as.s, rhs)) {
                 runtime_error(rt, stmt->line, "out of memory");
                 return out;
             }
             return out;
         }
 
-        runtime_error(rt, stmt->line, "index assignment target must be list or map, got %s", value_type_name(target.type));
+        runtime_error(rt, stmt->line, "index assignment target must be list or map, got %s", value_type_name(target->type));
         return out;
     }
 
@@ -829,12 +830,14 @@ static int run_program_with_options(Program *prog, const char *entry_path, int c
                                     const char *breakpoints_csv, int step_mode, char *err, size_t err_cap) {
     Runtime rt;
     memset(&rt, 0, sizeof(rt));
+    runtime_set_current(&rt);
     rt.check_only = check_only ? 1 : 0;
     rt.debug_enabled = debug_enabled ? 1 : 0;
     rt.debug_step_mode = step_mode ? 1 : 0;
     if (rt.debug_enabled) {
         if (!debug_parse_breakpoints_csv(&rt, breakpoints_csv, err, err_cap)) {
             cleanup_regex_registry(&rt);
+            runtime_set_current(NULL);
             return 0;
         }
     }
@@ -845,21 +848,24 @@ static int run_program_with_options(Program *prog, const char *entry_path, int c
     if (!main_mod) {
         snprintf(err, err_cap, "out of memory");
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
 
     if (!execute_module(&rt, main_mod)) {
         snprintf(err, err_cap, "%s", rt.err);
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
     if (!run_kostroutines(&rt)) {
         snprintf(err, err_cap, "%s", rt.err);
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
 
     cleanup_regex_registry(&rt);
+    runtime_set_current(NULL);
     return 1;
 }
-
