@@ -1,0 +1,27 @@
+import (
+    "time"
+)
+
+fuc _timeout(ms: int, done: chan) -> void:
+    time.sleep(ms)
+    trySend(done, true)
+    close(done)
+
+fuc withTimeout(ms: int) -> chan:
+    if ms < 0:
+        raiseErr("withTimeout expects ms >= 0")
+    done = chan(1)
+    kostroutine _timeout(ms, done)
+    return done
+
+fuc withDeadline(deltaMs: int) -> chan:
+    return withTimeout(deltaMs)
+
+fuc cancel(done: chan) -> void:
+    close(done)
+
+export (
+    withTimeout,
+    withDeadline,
+    cancel
+)

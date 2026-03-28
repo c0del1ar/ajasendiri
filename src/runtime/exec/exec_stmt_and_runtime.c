@@ -829,12 +829,14 @@ static int run_program_with_options(Program *prog, const char *entry_path, int c
                                     const char *breakpoints_csv, int step_mode, char *err, size_t err_cap) {
     Runtime rt;
     memset(&rt, 0, sizeof(rt));
+    runtime_set_current(&rt);
     rt.check_only = check_only ? 1 : 0;
     rt.debug_enabled = debug_enabled ? 1 : 0;
     rt.debug_step_mode = step_mode ? 1 : 0;
     if (rt.debug_enabled) {
         if (!debug_parse_breakpoints_csv(&rt, breakpoints_csv, err, err_cap)) {
             cleanup_regex_registry(&rt);
+            runtime_set_current(NULL);
             return 0;
         }
     }
@@ -845,21 +847,24 @@ static int run_program_with_options(Program *prog, const char *entry_path, int c
     if (!main_mod) {
         snprintf(err, err_cap, "out of memory");
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
 
     if (!execute_module(&rt, main_mod)) {
         snprintf(err, err_cap, "%s", rt.err);
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
     if (!run_kostroutines(&rt)) {
         snprintf(err, err_cap, "%s", rt.err);
         cleanup_regex_registry(&rt);
+        runtime_set_current(NULL);
         return 0;
     }
 
     cleanup_regex_registry(&rt);
+    runtime_set_current(NULL);
     return 1;
 }
-

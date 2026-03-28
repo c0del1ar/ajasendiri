@@ -403,6 +403,7 @@ static ObjectValue *new_object_from_type_decl(TypeDecl *type_decl) {
     if (!obj) {
         return NULL;
     }
+    runtime_note_alloc_object();
     obj->type_name = xstrdup(type_decl->name);
     obj->field_count = type_decl->field_count;
     obj->fields = (ObjectFieldDef *)calloc((size_t)obj->field_count, sizeof(ObjectFieldDef));

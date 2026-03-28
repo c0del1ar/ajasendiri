@@ -31,6 +31,28 @@ static Value call_native_module_function(Runtime *rt, Module *mod, Module *curre
     return value_invalid();
 }
 
+static Value runtime_mem_stats_value(Runtime *rt, int line) {
+    MapValue *m = map_new(VT_INT, NULL);
+    if (!m) {
+        runtime_error(rt, line, "out of memory");
+        return value_invalid();
+    }
+
+    if (!map_set(m, "strings", value_int(rt->alloc_string_count)) ||
+        !map_set(m, "lists", value_int(rt->alloc_list_count)) ||
+        !map_set(m, "maps", value_int(rt->alloc_map_count)) ||
+        !map_set(m, "channels", value_int(rt->alloc_channel_count)) ||
+        !map_set(m, "objects", value_int(rt->alloc_object_count)) ||
+        !map_set(m, "interfaces", value_int(rt->alloc_interface_count)) ||
+        !map_set(m, "functions", value_int(rt->alloc_function_count)) ||
+        !map_set(m, "multis", value_int(rt->alloc_multi_count))) {
+        runtime_error(rt, line, "out of memory");
+        return value_invalid();
+    }
+
+    return value_map(m);
+}
+
 static int list_accepts_item(Runtime *rt, int line, ListValue *list, Value item, const char *method_name) {
     if (item.type == VT_VOID || item.type == VT_INVALID) {
         runtime_error(rt, line, "list.%s(...) does not support %s", method_name, value_type_name(item.type));
@@ -787,6 +809,24 @@ static Value call_function(Runtime *rt, Module *current_module, Env *env, Expr *
 
         runtime_error(rt, call_expr->line, "length(...) expects list, map, or string, got %s", value_type_name(in.type));
         return value_invalid();
+    }
+
+    if (strcmp(resolved_name, "memStats") == 0) {
+        if (call_expr->as.call.arg_count != 0) {
+            runtime_error(rt, call_expr->line, "function 'memStats' expects 0 args, got %d",
+                          call_expr->as.call.arg_count);
+            return value_invalid();
+        }
+        return runtime_mem_stats_value(rt, call_expr->line);
+    }
+
+    if (strcmp(resolved_name, "memCollect") == 0) {
+        if (call_expr->as.call.arg_count != 0) {
+            runtime_error(rt, call_expr->line, "function 'memCollect' expects 0 args, got %d",
+                          call_expr->as.call.arg_count);
+            return value_invalid();
+        }
+        return runtime_mem_stats_value(rt, call_expr->line);
     }
 
     char *left = NULL;

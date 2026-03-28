@@ -212,6 +212,14 @@ typedef struct {
     int regex_entry_count;
     int regex_entry_cap;
     long long regex_next_handle;
+    long long alloc_string_count;
+    long long alloc_list_count;
+    long long alloc_map_count;
+    long long alloc_channel_count;
+    long long alloc_multi_count;
+    long long alloc_object_count;
+    long long alloc_interface_count;
+    long long alloc_function_count;
     int has_error;
     char err[2048];
 } Runtime;
@@ -229,6 +237,8 @@ enum {
     NATIVE_RE = 9
 };
 
+static void runtime_note_alloc_string(void);
+
 static char *xstrndup(const char *s, size_t n) {
     char *out = (char *)malloc(n + 1);
     if (!out) {
@@ -237,11 +247,78 @@ static char *xstrndup(const char *s, size_t n) {
     }
     memcpy(out, s, n);
     out[n] = '\0';
+    runtime_note_alloc_string();
     return out;
 }
 
 static char *xstrdup(const char *s) {
     return xstrndup(s, strlen(s));
+}
+
+static _Thread_local Runtime *g_runtime_current = NULL;
+
+static void runtime_set_current(Runtime *rt) {
+    g_runtime_current = rt;
+}
+
+static Runtime *runtime_get_current(void) {
+    return g_runtime_current;
+}
+
+static void runtime_note_alloc_string(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_string_count++;
+    }
+}
+
+static void runtime_note_alloc_list(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_list_count++;
+    }
+}
+
+static void runtime_note_alloc_map(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_map_count++;
+    }
+}
+
+static void runtime_note_alloc_channel(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_channel_count++;
+    }
+}
+
+static void runtime_note_alloc_multi(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_multi_count++;
+    }
+}
+
+static void runtime_note_alloc_object(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_object_count++;
+    }
+}
+
+static void runtime_note_alloc_interface(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_interface_count++;
+    }
+}
+
+static void runtime_note_alloc_function(void) {
+    Runtime *rt = runtime_get_current();
+    if (rt) {
+        rt->alloc_function_count++;
+    }
 }
 
 static const char *func_signature_name(FuncDecl *fn, char *buf, size_t buf_cap);
@@ -589,6 +666,7 @@ static Value value_multi(Value *items, int count) {
         v.type = VT_INVALID;
         return v;
     }
+    runtime_note_alloc_multi();
     if (count <= 0) {
         v.as.multi->items = NULL;
         v.as.multi->count = 0;
@@ -619,6 +697,7 @@ static Value value_interface(InterfaceDecl *iface, ObjectValue *obj) {
         v.type = VT_INVALID;
         return v;
     }
+    runtime_note_alloc_interface();
     v.as.iface->interface_name = xstrdup(iface->name);
     v.as.iface->iface_decl = iface;
     v.as.iface->obj = obj;
@@ -633,6 +712,7 @@ static Value value_function(FuncDecl *fn, Env *closure, Module *owner, const cha
         v.type = VT_INVALID;
         return v;
     }
+    runtime_note_alloc_function();
     v.as.func->fn = fn;
     v.as.func->closure = closure;
     v.as.func->owner = owner;

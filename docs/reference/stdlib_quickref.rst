@@ -11,6 +11,8 @@ Builtins
 - ``raiseErr``
 - ``length``
 - ``sort``
+- ``memStats``
+- ``memCollect``
 
 Native modules
 --------------
@@ -38,8 +40,8 @@ Pure `.aja` libs (bundled)
 
 Core:
 
-- ``re``, ``str``, ``text``, ``list``, ``set``, ``setutil``, ``maputil``, ``validate``, ``assert``
+- ``re``, ``str``, ``text``, ``list``, ``set``, ``setutil``, ``maputil``, ``validate``, ``assert``, ``context``, ``pathlib``
 
 Optional:
 
-- ``httpx``, ``fileutil``, ``env``, ``log``, ``retry``, ``query``, ``randutil``, ``queue``, ``stack``, ``cache``, ``kv``, ``datetime``
+- ``httpx``, ``collections``, ``fileutil``, ``env``, ``log``, ``retry``, ``query``, ``randutil``, ``queue``, ``stack``, ``cache``, ``kv``, ``datetime``

@@ -448,6 +448,7 @@ static Value http_make_response_object(Runtime *rt, int line, HttpResponseParsed
         runtime_error(rt, line, "out of memory");
         return value_invalid();
     }
+    runtime_note_alloc_object();
     obj->type_name = xstrdup("HttpResponse");
     obj->field_count = 3;
     obj->fields = (ObjectFieldDef *)calloc(3, sizeof(ObjectFieldDef));
@@ -510,4 +511,3 @@ static unsigned long long rand_next_u64(Runtime *rt) {
     rt->rand_state = x;
     return x * 2685821657736338717ULL;
 }
-

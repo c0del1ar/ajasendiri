@@ -67,7 +67,7 @@ static Module *try_load_native_module(Runtime *rt, const char *base_dir, const c
     char *ns = module_namespace(mod_name);
     int kind = NATIVE_NONE;
     const char *math_exports[] = {"pi", "abs", "sqrt", "min", "max"};
-    const char *time_exports[] = {"now_unix", "now_ms", "sleep"};
+    const char *time_exports[] = {"now_unix", "now_ms", "sleep", "after"};
     const char *json_exports[] = {"encode", "decode"};
     const char *fs_exports[] = {"read", "write", "append", "exists", "mkdir", "remove"};
     const char *http_exports[] = {"get", "post", "put", "delete", "request", "requestEx"};
@@ -86,7 +86,7 @@ static Module *try_load_native_module(Runtime *rt, const char *base_dir, const c
     } else if (strcmp(ns, "time") == 0) {
         kind = NATIVE_TIME;
         exports = time_exports;
-        export_count = 3;
+        export_count = 4;
     } else if (strcmp(ns, "json") == 0) {
         kind = NATIVE_JSON;
         exports = json_exports;
@@ -153,7 +153,8 @@ static int native_module_is_function_export(Module *m, const char *name) {
                strcmp(name, "max") == 0;
     }
     if (m->native_kind == NATIVE_TIME) {
-        return strcmp(name, "now_unix") == 0 || strcmp(name, "now_ms") == 0 || strcmp(name, "sleep") == 0;
+        return strcmp(name, "now_unix") == 0 || strcmp(name, "now_ms") == 0 || strcmp(name, "sleep") == 0 ||
+               strcmp(name, "after") == 0;
     }
     if (m->native_kind == NATIVE_JSON) {
         return strcmp(name, "encode") == 0 || strcmp(name, "decode") == 0;

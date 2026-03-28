@@ -1,0 +1,13 @@
+import (
+    "../../../libs/context"
+    "../../../libs/pathlib"
+    "../../../libs/collections"
+)
+
+done = context.withTimeout(1)
+print(recv(done))
+
+counts = collections.countStr(["a", "b", "a"])
+print(counts["a"])
+
+print(pathlib.stem("/tmp/demo.txt"))

@@ -1,0 +1,35 @@
+import (
+    "path"
+    "fs"
+)
+
+fuc join2(a: str, b: str) -> str:
+    return path.join(a, b)
+
+fuc exists(p: str) -> bool:
+    return fs.exists(p)
+
+fuc basename(p: str) -> str:
+    return path.basename(p)
+
+fuc dirname(p: str) -> str:
+    return path.dirname(p)
+
+fuc ext(p: str) -> str:
+    return path.ext(p)
+
+fuc stem(p: str) -> str:
+    name = path.basename(p)
+    extname = path.ext(name)
+    if extname == "":
+        return name
+    return name[0:length(name)-length(extname)]
+
+export (
+    join2,
+    exists,
+    basename,
+    dirname,
+    ext,
+    stem
+)

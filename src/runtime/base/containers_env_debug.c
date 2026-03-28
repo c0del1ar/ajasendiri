@@ -3,6 +3,7 @@ static ListValue *list_new(ValueType elem_type, const char *elem_object_type) {
     if (!list) {
         return NULL;
     }
+    runtime_note_alloc_list();
     list->elem_type = elem_type;
     list->elem_object_type = elem_object_type ? xstrdup(elem_object_type) : NULL;
     return list;
@@ -39,6 +40,7 @@ static MapValue *map_new(ValueType value_type, const char *value_object_type) {
     if (!map) {
         return NULL;
     }
+    runtime_note_alloc_map();
     map->value_type = value_type;
     map->value_object_type = value_object_type ? xstrdup(value_object_type) : NULL;
     return map;
@@ -49,6 +51,7 @@ static ChannelValue *channel_new(int max_buffer) {
     if (!ch) {
         return NULL;
     }
+    runtime_note_alloc_channel();
     ch->elem_type = VT_INVALID;
     ch->elem_object_type = NULL;
     ch->items = NULL;
@@ -632,4 +635,3 @@ static int env_set_const(Env *env, const char *name, Value v, char *err, size_t 
     env->count++;
     return 1;
 }
-

@@ -30,3 +30,6 @@ Thumbs.db
 # Python cache (tooling scripts)
 __pycache__/
 *.pyc
+
+# Docs build output
+docs/_build/
