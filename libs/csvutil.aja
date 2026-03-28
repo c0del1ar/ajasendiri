@@ -1,0 +1,26 @@
+import (
+    "str"
+)
+
+fuc splitLine(line: str) -> list[str]:
+    return str.split(line, ",")
+
+fuc joinLine(fields: list[str]) -> str:
+    return str.join(fields, ",")
+
+fuc parseHeaderRow(headerLine: str, rowLine: str) -> map:
+    headers = splitLine(headerLine)
+    values = splitLine(rowLine)
+    if length(headers) != length(values):
+        raiseErr("parseHeaderRow expects equal header/value counts")
+
+    out = {}
+    for i in range(length(headers)):
+        out[headers[i]] = values[i]
+    return out
+
+export (
+    splitLine,
+    joinLine,
+    parseHeaderRow
+)

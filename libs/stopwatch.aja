@@ -1,0 +1,35 @@
+import (
+    "time"
+)
+
+type Stopwatch:
+    startedAt: int
+    stoppedAt: int
+    running: bool
+
+fuc start() -> Stopwatch:
+    now = time.now_ms()
+    return Stopwatch(now, now, true)
+
+fuc stop(sw: Stopwatch) -> void:
+    if sw.running:
+        sw.stoppedAt = time.now_ms()
+        sw.running = false
+
+fuc elapsedMs(sw: Stopwatch) -> int:
+    if sw.running:
+        return time.now_ms() - sw.startedAt
+    return sw.stoppedAt - sw.startedAt
+
+fuc restart(sw: Stopwatch) -> void:
+    now = time.now_ms()
+    sw.startedAt = now
+    sw.stoppedAt = now
+    sw.running = true
+
+export (
+    start,
+    stop,
+    elapsedMs,
+    restart
+)

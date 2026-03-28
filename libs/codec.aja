@@ -1,0 +1,32 @@
+import (
+    "str"
+)
+
+fuc encodeMap(m: map) -> str:
+    out = ""
+    first = true
+    for key in sort(m.keys()):
+        if not first:
+            out = out + "\n"
+        out = out + key + ":" + m[key]
+        first = false
+    return out
+
+fuc decodeMap(text: str) -> map:
+    out = {}
+    lines = str.split(text, "\n")
+    for line in lines:
+        if line == "":
+            continue
+        idx = str.indexOf(line, ":")
+        if idx < 0:
+            continue
+        key = line[0:idx]
+        value = line[idx + 1:length(line)]
+        out[key] = value
+    return out
+
+export (
+    encodeMap,
+    decodeMap
+)

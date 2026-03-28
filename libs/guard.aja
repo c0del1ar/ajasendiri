@@ -1,0 +1,19 @@
+fuc require(condition: bool, message: str) -> void:
+    if not condition:
+        raiseErr(message)
+
+fuc requireNonEmpty(text: str, name: str = "value") -> str:
+    if text == "":
+        raiseErr(name + " must not be empty")
+    return text
+
+fuc requirePositive(n: int, name: str = "value") -> int:
+    if n <= 0:
+        raiseErr(name + " must be > 0")
+    return n
+
+export (
+    require,
+    requireNonEmpty,
+    requirePositive
+)

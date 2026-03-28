@@ -1,0 +1,14 @@
+import (
+    "str"
+)
+
+fuc render(template: str, vars: map) -> str:
+    out = template
+    for key in vars.keys():
+        token = "{{" + key + "}}"
+        out = str.replaceAll(out, token, vars[key])
+    return out
+
+export (
+    render
+)

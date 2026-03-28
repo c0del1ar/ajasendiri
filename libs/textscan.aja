@@ -1,0 +1,20 @@
+import (
+    "str"
+)
+
+fuc words(text: str) -> list[str]:
+    raw = str.split(text, " ")
+    out = []
+    for token in raw:
+        t = str.trim(token)
+        if t != "":
+            out.append(t)
+    return out
+
+fuc lines(text: str) -> list[str]:
+    return str.split(text, "\n")
+
+export (
+    words,
+    lines
+)

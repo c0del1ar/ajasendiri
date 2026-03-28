@@ -1,0 +1,39 @@
+import (
+    "str"
+)
+
+fuc parse(text: str) -> map:
+    out = {}
+    lines = str.split(text, "\n")
+
+    for line in lines:
+        t = str.trim(line)
+        if t == "":
+            continue
+        if str.startsWith(t, "#"):
+            continue
+
+        idx = str.indexOf(t, "=")
+        if idx < 0:
+            continue
+
+        key = str.trim(t[0:idx])
+        value = str.trim(t[idx + 1:length(t)])
+        out[key] = value
+
+    return out
+
+fuc stringify(m: map) -> str:
+    out = ""
+    first = true
+    for key in sort(m.keys()):
+        if not first:
+            out = out + "\n"
+        out = out + key + " = " + m[key]
+        first = false
+    return out
+
+export (
+    parse,
+    stringify
+)

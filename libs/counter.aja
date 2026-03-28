@@ -1,0 +1,37 @@
+type Counter:
+    counts: map
+
+fuc new() -> Counter:
+    return Counter({})
+
+fuc add(c: Counter, key: str, delta: int = 1) -> int:
+    counts = c.counts
+    if counts.has(key):
+        counts[key] = counts[key] + delta
+    else:
+        counts[key] = delta
+    c.counts = counts
+    return counts[key]
+
+fuc get(c: Counter, key: str) -> int:
+    counts = c.counts
+    if counts.has(key):
+        return counts[key]
+    return 0
+
+fuc remove(c: Counter, key: str) -> void:
+    counts = c.counts
+    if counts.has(key):
+        counts.delete(key)
+        c.counts = counts
+
+fuc keys(c: Counter) -> list[str]:
+    return sort(c.counts.keys())
+
+export (
+    new,
+    add,
+    get,
+    remove,
+    keys
+)

@@ -1,0 +1,20 @@
+import (
+    "rand"
+    "time"
+)
+
+fuc randomDigits(n: int) -> str:
+    if n < 0:
+        raiseErr("randomDigits expects n >= 0")
+    out = ""
+    for i in range(n):
+        out = out + str(rand.int(0, 9))
+    return out
+
+fuc stamp(prefix: str = "id") -> str:
+    return prefix + "-" + str(time.now_ms()) + "-" + randomDigits(6)
+
+export (
+    randomDigits,
+    stamp
+)

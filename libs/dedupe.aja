@@ -1,0 +1,18 @@
+fuc uniqueStr(items: list[str]) -> list[str]:
+    out = []
+    for item in items:
+        if not out.has(item):
+            out.append(item)
+    return out
+
+fuc uniqueInt(items: list[int]) -> list[int]:
+    out = []
+    for item in items:
+        if not out.has(item):
+            out.append(item)
+    return out
+
+export (
+    uniqueStr,
+    uniqueInt
+)
