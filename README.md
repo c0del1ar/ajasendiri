@@ -1,5 +1,9 @@
 # AjaSendiri v0.1.0
 
+<p align="center">
+  <img src="assts/Gemini_Generated_Image_51sgrc51sgrc51sg.png" alt="AjaSendiri logo" width="420" />
+</p>
+
 Ajasendiri is a high-level interpreted programming language written in C, built for people who crave quick results, beautiful code, and a mind free from “syntactic noise.” Whether you’re a beginner or a seasoned dev, Ajasendiri makes it fun and effortless to turn your ideas into code that just works.
 
 "Aja Sendiri" meant "Your Self", stand for your freedom. The goal is simple: keep syntax readable, keep types strict, and keep day-to-day coding practical.
