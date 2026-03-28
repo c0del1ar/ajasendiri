@@ -77,8 +77,8 @@ static int handle_mod_pack(int argc, char **argv) {
     }
 
     char err[512];
-    char hash_hex[17];
-    if (!hash_file_fnv1a_hex16(src_use, hash_hex, err, sizeof(err))) {
+    char hash_hex[65];
+    if (!hash_file_sha256_hex64(src_use, hash_hex, err, sizeof(err))) {
         fprintf(stderr, "mmk pack: %s\n", err);
         free(name);
         free(src_abs);
@@ -271,8 +271,21 @@ static int handle_mod_publish(int argc, char **argv) {
             free(root);
             return 1;
         }
-        char computed_hash[17];
-        hash_bytes_fnv1a_hex16((const unsigned char *)module_source, strlen(module_source), computed_hash);
+        char computed_hash[65];
+        if (!hash_bytes_sha256_hex64((const unsigned char *)module_source, strlen(module_source), computed_hash)) {
+            fprintf(stderr, "mmk publish: failed to hash module source\n");
+            free(spec.name);
+            free(spec.version);
+            free(spec.source);
+            free(spec.hash);
+            free(spec.sig);
+            free(exports_csv);
+            free(module_source);
+            free(pkg_text);
+            free(input_abs);
+            free(root);
+            return 1;
+        }
         if (strcmp(computed_hash, spec.hash) != 0) {
             fprintf(stderr, "mmk publish: package hash mismatch (declared=%s computed=%s)\n", spec.hash, computed_hash);
             free(spec.name);
@@ -406,8 +419,8 @@ static int handle_mod_publish(int argc, char **argv) {
         return 1;
     }
 
-    char hash_hex[17];
-    if (!hash_file_fnv1a_hex16(input_use, hash_hex, err, sizeof(err))) {
+    char hash_hex[65];
+    if (!hash_file_sha256_hex64(input_use, hash_hex, err, sizeof(err))) {
         fprintf(stderr, "mmk publish: %s\n", err);
         free(name);
         free(input_abs);
@@ -588,8 +601,8 @@ static int handle_mod_verify(int argc, char **argv) {
             free(site_root);
             return 1;
         }
-        char src_hash[17];
-        if (!hash_file_fnv1a_hex16(src, src_hash, err, sizeof(err))) {
+        char src_hash[65];
+        if (!hash_file_sha256_hex64(src, src_hash, err, sizeof(err))) {
             fprintf(stderr, "mmk verify: %s\n", err);
             free(src);
             free(req_content);
@@ -631,7 +644,20 @@ static int handle_mod_verify(int argc, char **argv) {
         }
         free(src);
 
-        char *mod_file_rel = (char *)malloc(strlen(d->name) + 5);
+        size_t dep_name_len = strlen(d->name);
+        if (dep_name_len > ((size_t)-1) - 5) {
+            fprintf(stderr, "mmk verify: dependency name too long\n");
+            free(req_content);
+            free(lock_content);
+            dep_list_free(&deps);
+            dep_list_free(&locked);
+            free(root);
+            free(req_path);
+            free(lock_path);
+            free(site_root);
+            return 1;
+        }
+        char *mod_file_rel = (char *)malloc(dep_name_len + 5);
         if (!mod_file_rel) {
             fprintf(stderr, "mmk verify: out of memory\n");
             free(req_content);
@@ -644,8 +670,8 @@ static int handle_mod_verify(int argc, char **argv) {
             free(site_root);
             return 1;
         }
-        strcpy(mod_file_rel, d->name);
-        strcat(mod_file_rel, ".aja");
+        memcpy(mod_file_rel, d->name, dep_name_len);
+        memcpy(mod_file_rel + dep_name_len, ".aja", 5);
         char *installed = join_path2(site_root, mod_file_rel);
         if (!is_regular_file_path(installed)) {
             fprintf(stderr, "mmk verify: installed module missing for %s: %s\n", d->name, installed);
@@ -661,8 +687,8 @@ static int handle_mod_verify(int argc, char **argv) {
             free(site_root);
             return 1;
         }
-        char installed_hash[17];
-        if (!hash_file_fnv1a_hex16(installed, installed_hash, err, sizeof(err))) {
+        char installed_hash[65];
+        if (!hash_file_sha256_hex64(installed, installed_hash, err, sizeof(err))) {
             fprintf(stderr, "mmk verify: %s\n", err);
             free(installed);
             free(mod_file_rel);
@@ -931,8 +957,9 @@ static char *resolve_executable_path(const char *argv0) {
         if (end > seg) {
             char *dir = dup_n(seg, (size_t)(end - seg));
             char *candidate = join_path2(dir, argv0);
+            struct stat st;
             free(dir);
-            if (access(candidate, X_OK) == 0) {
+            if (stat(candidate, &st) == 0 && S_ISREG(st.st_mode) && (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH))) {
                 return candidate;
             }
             free(candidate);
@@ -956,11 +983,7 @@ static char *escape_shell_dquote(const char *s) {
 }
 
 static int write_executable_script(const char *path, const char *content, char *err, size_t err_cap) {
-    if (!write_file(path, content, err, err_cap)) {
-        return 0;
-    }
-    if (chmod(path, 0755) != 0) {
-        snprintf(err, err_cap, "cannot chmod executable %s: %s", path, strerror(errno));
+    if (!write_file_mode(path, content, 0755, err, err_cap)) {
         return 0;
     }
     return 1;

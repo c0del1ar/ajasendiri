@@ -405,14 +405,32 @@ static ObjectValue *new_object_from_type_decl(TypeDecl *type_decl) {
     }
     runtime_note_alloc_object();
     obj->type_name = xstrdup(type_decl->name);
+    if (!obj->type_name) {
+        free(obj);
+        return NULL;
+    }
     obj->field_count = type_decl->field_count;
     obj->fields = (ObjectFieldDef *)calloc((size_t)obj->field_count, sizeof(ObjectFieldDef));
     obj->values = (Value *)calloc((size_t)obj->field_count, sizeof(Value));
     if (!obj->fields || !obj->values) {
+        free(obj->fields);
+        free(obj->values);
+        free(obj->type_name);
+        free(obj);
         return NULL;
     }
     for (int i = 0; i < obj->field_count; i++) {
         obj->fields[i].name = xstrdup(type_decl->fields[i].name);
+        if (!obj->fields[i].name) {
+            for (int j = 0; j < i; j++) {
+                free(obj->fields[j].name);
+            }
+            free(obj->fields);
+            free(obj->values);
+            free(obj->type_name);
+            free(obj);
+            return NULL;
+        }
         obj->fields[i].type = clone_type_ref(type_decl->fields[i].type);
         obj->values[i] = value_invalid();
     }
@@ -649,6 +667,10 @@ static Value eval_binary(Runtime *rt, Module *current_module, Env *env, Expr *ex
         if (left.type == VT_STRING && right.type == VT_STRING) {
             size_t l1 = strlen(left.as.s);
             size_t l2 = strlen(right.as.s);
+            if (l1 > ((size_t)-1) - l2 - 1) {
+                runtime_error(rt, expr->line, "string too large");
+                return value_invalid();
+            }
             char *cat = (char *)malloc(l1 + l2 + 1);
             if (!cat) {
                 runtime_error(rt, expr->line, "out of memory");

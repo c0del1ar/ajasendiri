@@ -2,6 +2,9 @@ static int register_namespaced_exports(Runtime *rt, Module *m) {
     for (int i = 0; i < m->prog->export_count; i++) {
         const char *sym = m->prog->exports[i];
         size_t n1 = strlen(m->namespace), n2 = strlen(sym);
+        if (n1 > ((size_t)-1) - n2 - 2) {
+            return 0;
+        }
         char *full = (char *)malloc(n1 + n2 + 2);
         if (!full) {
             return 0;
@@ -319,6 +322,10 @@ static int process_imports(Runtime *rt, Module *m) {
             if (imported->native_kind != NATIVE_NONE && native_module_is_function_export(imported, name)) {
                 size_t n1 = strlen(imported->namespace);
                 size_t n2 = strlen(name);
+                if (n1 > ((size_t)-1) - n2 - 2) {
+                    runtime_error(rt, 0, "out of memory while importing '%s'", name);
+                    return 0;
+                }
                 char *qualified = (char *)malloc(n1 + n2 + 2);
                 if (!qualified) {
                     runtime_error(rt, 0, "out of memory while importing '%s'", name);

@@ -13,6 +13,10 @@ typedef struct {
 } StrBuf;
 
 static char *xstrndup(const char *s, size_t n) {
+    if (n == (size_t)-1) {
+        fprintf(stderr, "fatal: out of memory\n");
+        exit(1);
+    }
     char *out = (char *)malloc(n + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");
@@ -89,12 +93,21 @@ static void token_array_push(TokenArray *arr, Token t) {
 }
 
 static void add_token(TokenArray *arr, TokenType type, const char *lexeme, int line, int col) {
-    Token t;
-    t.type = type;
-    t.lexeme = xstrdup(lexeme);
-    t.line = line;
-    t.col = col;
-    token_array_push(arr, t);
+    if (arr->count + 1 > arr->cap) {
+        arr->cap = arr->cap == 0 ? 64 : arr->cap * 2;
+        Token *next = (Token *)realloc(arr->items, (size_t)arr->cap * sizeof(Token));
+        if (!next) {
+            fprintf(stderr, "fatal: out of memory\n");
+            exit(1);
+        }
+        arr->items = next;
+    }
+
+    Token *slot = &arr->items[arr->count++];
+    slot->type = type;
+    slot->lexeme = xstrdup(lexeme);
+    slot->line = line;
+    slot->col = col;
 }
 
 static int count_leading_spaces(const char *line) {

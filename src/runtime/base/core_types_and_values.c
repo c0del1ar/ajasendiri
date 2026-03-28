@@ -240,6 +240,10 @@ enum {
 static void runtime_note_alloc_string(void);
 
 static char *xstrndup(const char *s, size_t n) {
+    if (n == (size_t)-1) {
+        fprintf(stderr, "fatal: out of memory\n");
+        exit(1);
+    }
     char *out = (char *)malloc(n + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");

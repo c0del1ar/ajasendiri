@@ -1,27 +1,24 @@
 static int handle_test_command(int argc, char **argv) {
-    int cmd_argc = argc + 1;
+    int cmd_argc = argc > 2 ? (argc - 1) : 1;
     char **cmd_argv = (char **)calloc((size_t)cmd_argc + 1, sizeof(char *));
     if (!cmd_argv) {
         fprintf(stderr, "out of memory\n");
         return 1;
     }
 
-    cmd_argv[0] = (char *)"sh";
-    cmd_argv[1] = (char *)"./tests/run_tests.sh";
+    cmd_argv[0] = (char *)"./tests/run_tests.sh";
     for (int i = 2; i < argc; i++) {
-        cmd_argv[i] = argv[i];
+        cmd_argv[i - 1] = argv[i];
     }
-    cmd_argv[argc] = NULL;
+    cmd_argv[cmd_argc] = NULL;
 
-    pid_t pid = fork();
-    if (pid < 0) {
+    extern char **environ;
+    pid_t pid = 0;
+    int spawn_rc = posix_spawn(&pid, "./tests/run_tests.sh", NULL, NULL, cmd_argv, environ);
+    if (spawn_rc != 0) {
         free(cmd_argv);
         fprintf(stderr, "failed to run tests\n");
         return 1;
-    }
-    if (pid == 0) {
-        execvp("sh", cmd_argv);
-        _exit(127);
     }
 
     int status = 0;
@@ -219,6 +216,10 @@ static int install_stdlib_modules(const char *cmd_name, const char *source_root,
     for (int i = 0; i < module_count; i++) {
         const char *name = module_names[i];
         size_t name_len = strlen(name);
+        if (name_len > ((size_t)-1) - 5) {
+            fprintf(stderr, "%s: module name too long\n", cmd_name);
+            return 0;
+        }
         char *rel = (char *)malloc(name_len + 5);
         if (!rel) {
             fprintf(stderr, "%s: out of memory\n", cmd_name);
@@ -1070,8 +1071,8 @@ static int handle_mod_install(int argc, char **argv) {
             return 1;
         }
 
-        char hash_hex[17];
-        if (!hash_file_fnv1a_hex16(src, hash_hex, err, sizeof(err))) {
+        char hash_hex[65];
+        if (!hash_file_sha256_hex64(src, hash_hex, err, sizeof(err))) {
             fprintf(stderr, "mmk install: %s\n", err);
             free(src);
             free(req_content);
@@ -1115,7 +1116,21 @@ static int handle_mod_install(int argc, char **argv) {
             }
         }
 
-        char *mod_file_rel = (char *)malloc(strlen(d->name) + 5);
+        size_t dep_name_len = strlen(d->name);
+        if (dep_name_len > ((size_t)-1) - 5) {
+            fprintf(stderr, "mmk install: dependency name too long\n");
+            free(src);
+            free(req_content);
+            dep_list_free(&deps);
+            dep_list_free(&locked);
+            free(lock_buf.buf);
+            free(root);
+            free(req_path);
+            free(lock_path);
+            free(site_root);
+            return 1;
+        }
+        char *mod_file_rel = (char *)malloc(dep_name_len + 5);
         if (!mod_file_rel) {
             fprintf(stderr, "mmk install: out of memory\n");
             free(src);
@@ -1129,8 +1144,8 @@ static int handle_mod_install(int argc, char **argv) {
             free(site_root);
             return 1;
         }
-        strcpy(mod_file_rel, d->name);
-        strcat(mod_file_rel, ".aja");
+        memcpy(mod_file_rel, d->name, dep_name_len);
+        memcpy(mod_file_rel + dep_name_len, ".aja", 5);
 
         char *dst = join_path2(site_root, mod_file_rel);
         char *dst_dir = dirname_from_path2(dst);

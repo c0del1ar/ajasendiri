@@ -205,16 +205,29 @@ static int map_set(MapValue *map, const char *key, Value value) {
         return 1;
     }
     if (map->count + 1 > map->cap) {
-        map->cap = map->cap == 0 ? 8 : map->cap * 2;
-        char **next_keys = (char **)realloc(map->keys, (size_t)map->cap * sizeof(char *));
-        Value *next_values = (Value *)realloc(map->values, (size_t)map->cap * sizeof(Value));
+        int next_cap = map->cap == 0 ? 8 : map->cap * 2;
+        char **next_keys = (char **)malloc((size_t)next_cap * sizeof(char *));
+        Value *next_values = (Value *)malloc((size_t)next_cap * sizeof(Value));
         if (!next_keys || !next_values) {
+            free(next_keys);
+            free(next_values);
             return 0;
         }
+        for (int i = 0; i < map->count; i++) {
+            next_keys[i] = map->keys[i];
+            next_values[i] = map->values[i];
+        }
+        free(map->keys);
+        free(map->values);
         map->keys = next_keys;
         map->values = next_values;
+        map->cap = next_cap;
     }
-    map->keys[map->count] = xstrdup(key);
+    char *key_copy = xstrdup(key);
+    if (!key_copy) {
+        return 0;
+    }
+    map->keys[map->count] = key_copy;
     map->values[map->count] = value;
     map->count++;
     return 1;
@@ -296,6 +309,16 @@ static int env_get(Env *env, const char *name, Value *out) {
         }
     }
     return 0;
+}
+
+static Value *env_get_mut(Env *env, const char *name) {
+    for (Env *cur = env; cur != NULL; cur = cur->parent) {
+        int idx = env_find_local(cur, name);
+        if (idx >= 0) {
+            return &cur->entries[idx].value;
+        }
+    }
+    return NULL;
 }
 
 static char *dbg_trim(char *s) {
@@ -606,6 +629,10 @@ static int env_set(Env *env, const char *name, Value v, char *err, size_t err_ca
     }
 
     env->entries[env->count].name = xstrdup(name);
+    if (!env->entries[env->count].name) {
+        snprintf(err, err_cap, "out of memory");
+        return 0;
+    }
     env->entries[env->count].value = v;
     env->entries[env->count].is_const = 0;
     env->count++;
@@ -630,6 +657,10 @@ static int env_set_const(Env *env, const char *name, Value v, char *err, size_t 
     }
 
     env->entries[env->count].name = xstrdup(name);
+    if (!env->entries[env->count].name) {
+        snprintf(err, err_cap, "out of memory");
+        return 0;
+    }
     env->entries[env->count].value = v;
     env->entries[env->count].is_const = 1;
     env->count++;

@@ -1,6 +1,10 @@
 static char *join_qualified_name(char *base, const char *suffix) {
     size_t a = strlen(base);
     size_t b = strlen(suffix);
+    if (a > ((size_t)-1) - b - 2) {
+        fprintf(stderr, "fatal: out of memory\n");
+        exit(1);
+    }
     char *next = (char *)malloc(a + b + 2);
     if (!next) {
         fprintf(stderr, "fatal: out of memory\n");

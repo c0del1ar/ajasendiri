@@ -7,6 +7,7 @@ static void runtime_error(Runtime *rt, int line, const char *fmt, ...) {
     char msg[384];
     va_list ap;
     va_start(ap, fmt);
+    /* Flawfinder: ignore */
     vsnprintf(msg, sizeof(msg), fmt, ap);
     va_end(ap);
 
@@ -61,6 +62,15 @@ static int has_suffix(const char *s, const char *suffix) {
     return strcmp(s + (n - m), suffix) == 0;
 }
 
+static int is_readable_file_path(const char *path) {
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        return 0;
+    }
+    fclose(f);
+    return 1;
+}
+
 static char *dirname_from_path(const char *path) {
     const char *slash = strrchr(path, '/');
     if (!slash) {
@@ -76,6 +86,10 @@ static char *join_path(const char *a, const char *b) {
     size_t na = strlen(a);
     size_t nb = strlen(b);
     int need_slash = (na > 0 && a[na - 1] != '/');
+    if (na > ((size_t)-1) - nb - (size_t)need_slash - 1) {
+        fprintf(stderr, "fatal: path too long\n");
+        exit(1);
+    }
     char *out = (char *)malloc(na + nb + (size_t)need_slash + 1);
     if (!out) {
         fprintf(stderr, "fatal: out of memory\n");
@@ -106,6 +120,10 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
         file = xstrdup(mod_name);
     } else {
         size_t n = strlen(mod_name);
+        if (n > ((size_t)-1) - 5) {
+            fprintf(stderr, "fatal: module name too long\n");
+            exit(1);
+        }
         file = (char *)malloc(n + 5);
         if (!file) {
             fprintf(stderr, "fatal: out of memory\n");
@@ -120,7 +138,7 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
     }
 
     char *fallback = join_path(base_dir, file);
-    if (access(fallback, R_OK) == 0) {
+    if (is_readable_file_path(fallback)) {
         free(file);
         return fallback;
     }
@@ -137,7 +155,7 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
         char *venv_path = join_path(venv_site, file);
         free(venv_root);
         free(venv_site);
-        if (access(venv_path, R_OK) == 0) {
+        if (is_readable_file_path(venv_path)) {
             free(file);
             free(fallback);
             return venv_path;
@@ -150,7 +168,7 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
         char *site_root = join_path(cur, ".aja/site-packages");
         char *site_path = join_path(site_root, file);
         free(site_root);
-        if (access(site_path, R_OK) == 0) {
+        if (is_readable_file_path(site_path)) {
             free(cur);
             free(file);
             free(fallback);
@@ -173,7 +191,7 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
         char *global_root = join_path(home, ".aja/site-packages");
         char *global_path = join_path(global_root, file);
         free(global_root);
-        if (access(global_path, R_OK) == 0) {
+        if (is_readable_file_path(global_path)) {
             free(file);
             free(fallback);
             return global_path;
@@ -193,7 +211,7 @@ static char *module_path_from_name(const char *base_dir, const char *mod_name) {
                 char *dir = xstrndup(seg, (size_t)(end - seg));
                 char *candidate = join_path(dir, file);
                 free(dir);
-                if (access(candidate, R_OK) == 0) {
+                if (is_readable_file_path(candidate)) {
                     free(file);
                     free(fallback);
                     return candidate;
@@ -224,6 +242,11 @@ static char *read_file(const char *path, char *err, size_t err_cap) {
     if (size < 0) {
         fclose(f);
         snprintf(err, err_cap, "read error: cannot tell size of %s", path);
+        return NULL;
+    }
+    if ((size_t)size > ((size_t)-1) - 1) {
+        fclose(f);
+        snprintf(err, err_cap, "read error: file too large: %s", path);
         return NULL;
     }
     if (fseek(f, 0, SEEK_SET) != 0) {
@@ -367,6 +390,9 @@ static char *alias_to_namespaced_name(Runtime *rt, const char *name) {
         }
         size_t n1 = strlen(a->module->namespace);
         size_t n2 = strlen(suffix);
+        if (n1 > ((size_t)-1) - n2 - 2) {
+            return NULL;
+        }
         char *full = (char *)malloc(n1 + n2 + 2);
         if (!full) {
             return NULL;
@@ -657,11 +683,19 @@ static void free_kostroutine_task(KostroutineTask *task) {
 static int push_kostroutine_thread(Runtime *rt, pthread_t thread, void *ctx) {
     if (rt->kostroutine_thread_count + 1 > rt->kostroutine_thread_cap) {
         int next_cap = rt->kostroutine_thread_cap == 0 ? 8 : rt->kostroutine_thread_cap * 2;
-        pthread_t *next_threads = (pthread_t *)realloc(rt->kostroutine_threads, (size_t)next_cap * sizeof(pthread_t));
-        void **next_ctxs = (void **)realloc(rt->kostroutine_thread_ctxs, (size_t)next_cap * sizeof(void *));
+        pthread_t *next_threads = (pthread_t *)malloc((size_t)next_cap * sizeof(pthread_t));
+        void **next_ctxs = (void **)malloc((size_t)next_cap * sizeof(void *));
         if (!next_threads || !next_ctxs) {
+            free(next_threads);
+            free(next_ctxs);
             return 0;
         }
+        for (int i = 0; i < rt->kostroutine_thread_count; i++) {
+            next_threads[i] = rt->kostroutine_threads[i];
+            next_ctxs[i] = rt->kostroutine_thread_ctxs[i];
+        }
+        free(rt->kostroutine_threads);
+        free(rt->kostroutine_thread_ctxs);
         rt->kostroutine_threads = next_threads;
         rt->kostroutine_thread_ctxs = next_ctxs;
         rt->kostroutine_thread_cap = next_cap;

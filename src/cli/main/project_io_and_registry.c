@@ -69,7 +69,7 @@
         free(bad_version);
         return 0;
     }
-    if (!valid_hash_hex16(spec->hash)) {
+    if (!valid_hash_hex(spec->hash)) {
         char *bad_hash = dup_s(spec->hash);
         free(spec->name);
         free(spec->version);
@@ -155,6 +155,11 @@ static char *read_file(const char *path, char *err, size_t err_cap) {
         snprintf(err, err_cap, "read error: cannot tell size of %s", path);
         return NULL;
     }
+    if ((size_t)size > ((size_t)-1) - 1) {
+        fclose(f);
+        snprintf(err, err_cap, "read error: file too large: %s", path);
+        return NULL;
+    }
     if (fseek(f, 0, SEEK_SET) != 0) {
         fclose(f);
         snprintf(err, err_cap, "read error: cannot seek %s", path);
@@ -215,22 +220,39 @@ static char *read_stdin_all(char *err, size_t err_cap) {
     return buf;
 }
 
-static int hash_file_fnv1a_hex16(const char *path, char out_hex[17], char *err, size_t err_cap) {
+static int hash_file_sha256_hex64(const char *path, char out_hex[65], char *err, size_t err_cap) {
     FILE *f = fopen(path, "rb");
     if (!f) {
         snprintf(err, err_cap, "cannot open source %s", path);
         return 0;
     }
-    uint64_t h = 1469598103934665603ULL;
+
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    if (!ctx) {
+        fclose(f);
+        snprintf(err, err_cap, "failed to initialize SHA-256");
+        return 0;
+    }
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1) {
+        EVP_MD_CTX_free(ctx);
+        fclose(f);
+        snprintf(err, err_cap, "failed to initialize SHA-256");
+        return 0;
+    }
     unsigned char buf[4096];
     while (1) {
         size_t n = fread(buf, 1, sizeof(buf), f);
-        for (size_t i = 0; i < n; i++) {
-            h ^= (uint64_t)buf[i];
-            h *= 1099511628211ULL;
+        if (n > 0) {
+            if (EVP_DigestUpdate(ctx, buf, n) != 1) {
+                EVP_MD_CTX_free(ctx);
+                fclose(f);
+                snprintf(err, err_cap, "failed to update SHA-256");
+                return 0;
+            }
         }
         if (n < sizeof(buf)) {
             if (ferror(f)) {
+                EVP_MD_CTX_free(ctx);
                 fclose(f);
                 snprintf(err, err_cap, "failed reading %s", path);
                 return 0;
@@ -239,17 +261,54 @@ static int hash_file_fnv1a_hex16(const char *path, char out_hex[17], char *err, 
         }
     }
     fclose(f);
-    snprintf(out_hex, 17, "%016llx", (unsigned long long)h);
+
+    unsigned char digest[EVP_MAX_MD_SIZE];
+    unsigned int digest_len = 0;
+    if (EVP_DigestFinal_ex(ctx, digest, &digest_len) != 1 || digest_len != 32) {
+        EVP_MD_CTX_free(ctx);
+        snprintf(err, err_cap, "failed to finalize SHA-256");
+        return 0;
+    }
+    EVP_MD_CTX_free(ctx);
+    static const char *hex = "0123456789abcdef";
+    for (unsigned int i = 0; i < digest_len; i++) {
+        out_hex[i * 2] = hex[(digest[i] >> 4) & 0xF];
+        out_hex[i * 2 + 1] = hex[digest[i] & 0xF];
+    }
+    out_hex[64] = '\0';
     return 1;
 }
 
-static void hash_bytes_fnv1a_hex16(const unsigned char *buf, size_t len, char out_hex[17]) {
-    uint64_t h = 1469598103934665603ULL;
-    for (size_t i = 0; i < len; i++) {
-        h ^= (uint64_t)buf[i];
-        h *= 1099511628211ULL;
+static int hash_bytes_sha256_hex64(const unsigned char *buf, size_t len, char out_hex[65]) {
+    if (!buf) {
+        return 0;
     }
-    snprintf(out_hex, 17, "%016llx", (unsigned long long)h);
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    if (!ctx) {
+        return 0;
+    }
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1) {
+        EVP_MD_CTX_free(ctx);
+        return 0;
+    }
+    if (EVP_DigestUpdate(ctx, buf, len) != 1) {
+        EVP_MD_CTX_free(ctx);
+        return 0;
+    }
+    unsigned char digest[EVP_MAX_MD_SIZE];
+    unsigned int digest_len = 0;
+    if (EVP_DigestFinal_ex(ctx, digest, &digest_len) != 1 || digest_len != 32) {
+        EVP_MD_CTX_free(ctx);
+        return 0;
+    }
+    EVP_MD_CTX_free(ctx);
+    static const char *hex = "0123456789abcdef";
+    for (unsigned int i = 0; i < digest_len; i++) {
+        out_hex[i * 2] = hex[(digest[i] >> 4) & 0xF];
+        out_hex[i * 2 + 1] = hex[digest[i] & 0xF];
+    }
+    out_hex[64] = '\0';
+    return 1;
 }
 
 static int is_ident_start_char(char c) {
@@ -375,14 +434,20 @@ static int write_dep_metadata(const char *site_root, const DepSpec *dep, const c
     char *exports_csv = extract_exports_csv(src_content);
     free(src_content);
 
-    char *meta_rel = (char *)malloc(strlen(dep->name) + 6);
+    size_t dep_name_len = strlen(dep->name);
+    if (dep_name_len > ((size_t)-1) - 6) {
+        free(exports_csv);
+        snprintf(err, err_cap, "dependency name too long");
+        return 0;
+    }
+    char *meta_rel = (char *)malloc(dep_name_len + 6);
     if (!meta_rel) {
         free(exports_csv);
         snprintf(err, err_cap, "out of memory");
         return 0;
     }
-    strcpy(meta_rel, dep->name);
-    strcat(meta_rel, ".meta");
+    memcpy(meta_rel, dep->name, dep_name_len);
+    memcpy(meta_rel + dep_name_len, ".meta", 6);
     char *meta_path = join_path2(site_root, meta_rel);
     char *meta_dir = dirname_from_path2(meta_path);
 
@@ -549,7 +614,7 @@ static int read_registry_meta_integrity(const char *root, const char *name, cons
         }
     }
 
-    if (!*out_hash || !valid_hash_hex16(*out_hash)) {
+    if (!*out_hash || !valid_hash_hex(*out_hash)) {
         snprintf(err, err_cap, "registry metadata has invalid hash for %s==%s", name, version);
         free(*out_hash);
         free(*out_sig);
@@ -572,21 +637,33 @@ static int read_registry_meta_integrity(const char *root, const char *name, cons
     return 1;
 }
 
-static int write_file(const char *path, const char *content, char *err, size_t err_cap) {
-    FILE *f = fopen(path, "wb");
-    if (!f) {
+static int write_file_mode(const char *path, const char *content, mode_t mode, char *err, size_t err_cap) {
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode);
+    if (fd < 0) {
         snprintf(err, err_cap, "write error: cannot open %s", path);
         return 0;
     }
     size_t len = strlen(content);
-    if (len > 0 && fwrite(content, 1, len, f) != len) {
-        fclose(f);
-        snprintf(err, err_cap, "write error: short write on %s", path);
-        return 0;
+    size_t off = 0;
+    while (off < len) {
+        ssize_t wrote = write(fd, content + off, len - off);
+        if (wrote < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            close(fd);
+            snprintf(err, err_cap, "write error: short write on %s", path);
+            return 0;
+        }
+        off += (size_t)wrote;
     }
-    if (fclose(f) != 0) {
+    if (close(fd) != 0) {
         snprintf(err, err_cap, "write error: cannot close %s", path);
         return 0;
     }
     return 1;
+}
+
+static int write_file(const char *path, const char *content, char *err, size_t err_cap) {
+    return write_file_mode(path, content, 0644, err, err_cap);
 }

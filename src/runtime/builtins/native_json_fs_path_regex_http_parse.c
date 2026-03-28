@@ -223,6 +223,9 @@ static char *path_join_dup(const char *a, const char *b) {
     if (a[alen - 1] == '/' || b[0] == '/') {
         need_sep = 0;
     }
+    if (alen > ((size_t)-1) - blen - (size_t)need_sep - 1) {
+        return NULL;
+    }
     char *out = (char *)malloc(alen + blen + (size_t)need_sep + 1);
     if (!out) {
         return NULL;
@@ -438,6 +441,33 @@ static void http_response_parsed_init(HttpResponseParsed *out) {
     out->headers = NULL;
 }
 
+static void http_headers_map_free(MapValue *headers) {
+    if (!headers) {
+        return;
+    }
+    if (headers->keys) {
+        for (int i = 0; i < headers->count; i++) {
+            free(headers->keys[i]);
+        }
+        free(headers->keys);
+        headers->keys = NULL;
+    }
+    if (headers->values) {
+        if (headers->value_type == VT_STRING) {
+            for (int i = 0; i < headers->count; i++) {
+                free(headers->values[i].as.s);
+            }
+        }
+        free(headers->values);
+        headers->values = NULL;
+    }
+    free(headers->value_object_type);
+    headers->value_object_type = NULL;
+    headers->count = 0;
+    headers->cap = 0;
+    free(headers);
+}
+
 static void http_response_parsed_cleanup(HttpResponseParsed *out) {
     if (!out) {
         return;
@@ -445,6 +475,10 @@ static void http_response_parsed_cleanup(HttpResponseParsed *out) {
     if (out->body) {
         free(out->body);
         out->body = NULL;
+    }
+    if (out->headers) {
+        http_headers_map_free(out->headers);
+        out->headers = NULL;
     }
 }
 
@@ -651,6 +685,10 @@ static int http_parse_response(const char *method, const char *resp, size_t resp
     }
 
     size_t body_len = resp_len - header_end;
+    if (body_len == (size_t)-1) {
+        snprintf(err, err_cap, "http response too large");
+        return 0;
+    }
     char *body = (char *)malloc(body_len + 1);
     if (!body) {
         snprintf(err, err_cap, "out of memory");
