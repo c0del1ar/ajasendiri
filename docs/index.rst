@@ -5,9 +5,11 @@ Welcome to the Ajasendiri docs.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Tutorials
+   :caption: Start Here
 
+   home
    howto/index
+   examples/index
 
 .. toctree::
    :maxdepth: 2
@@ -24,5 +26,7 @@ Welcome to the Ajasendiri docs.
    concurrency
    tooling
    architecture
+   glossary
+   versioning
 
 See also: ``../CONTRIBUTING.md`` for contributor workflow.
