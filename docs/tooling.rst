@@ -9,6 +9,8 @@ Build and test
    make
    make test
    make docs
+   make docs-check
+   make docs-linkcheck
 
 Run commands
 ------------
@@ -94,3 +96,9 @@ Notes:
 - Registry selectors are resolved and pinned in ``requirements.txt``.
 - If ``AJA_SIGN_KEY`` is set, ``mmk pack/publish`` sign packages and ``mmk install/verify`` validate signatures.
 - Set ``AJA_REQUIRE_SIGNATURE=1`` to require signed registry dependencies.
+
+Docs publishing
+---------------
+
+- GitHub Pages deploys docs from ``main`` using ``.github/workflows/docs-pages.yml``.
+- Custom domain is ``anehaja.aryakun.id`` (via ``docs/CNAME``).
