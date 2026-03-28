@@ -1,0 +1,42 @@
+fuc clamp(n: int, low: int, high: int) -> int:
+    if low > high:
+        raiseErr("clamp expects low <= high")
+    if n < low:
+        return low
+    if n > high:
+        return high
+    return n
+
+fuc clampFloat(n: float, low: float, high: float) -> float:
+    if low > high:
+        raiseErr("clampFloat expects low <= high")
+    if n < low:
+        return low
+    if n > high:
+        return high
+    return n
+
+fuc absInt(n: int) -> int:
+    if n < 0:
+        return 0 - n
+    return n
+
+fuc absFloat(n: float) -> float:
+    if n < 0.0:
+        return 0.0 - n
+    return n
+
+fuc signInt(n: int) -> int:
+    if n < 0:
+        return -1
+    if n > 0:
+        return 1
+    return 0
+
+export (
+    clamp,
+    clampFloat,
+    absInt,
+    absFloat,
+    signInt
+)

@@ -1,0 +1,25 @@
+fuc mapAdd(items: list[int], delta: int) -> list[int]:
+    out = []
+    for item in items:
+        out.append(item + delta)
+    return out
+
+fuc filterGt(items: list[int], limit: int) -> list[int]:
+    out = []
+    for item in items:
+        if item > limit:
+            out.append(item)
+    return out
+
+fuc countEq(items: list[int], needle: int) -> int:
+    total = 0
+    for item in items:
+        if item == needle:
+            total = total + 1
+    return total
+
+export (
+    mapAdd,
+    filterGt,
+    countEq
+)

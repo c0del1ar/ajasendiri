@@ -1,0 +1,18 @@
+fuc chunk(items: list, size: int) -> list:
+    if size <= 0:
+        raiseErr("chunk expects size > 0")
+
+    out = []
+    i = 0
+    n = length(items)
+    while i < n do:
+        end = i + size
+        if end > n:
+            end = n
+        out.append(items[i:end])
+        i = end
+    return out
+
+export (
+    chunk
+)

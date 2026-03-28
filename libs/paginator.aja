@@ -1,0 +1,38 @@
+type Pager:
+    items: list
+    pageSize: int
+
+fuc new(items: list, pageSize: int) -> Pager:
+    if pageSize <= 0:
+        raiseErr("pageSize must be > 0")
+    return Pager(items, pageSize)
+
+fuc pageCount(p: Pager) -> int:
+    n = length(p.items)
+    if n == 0:
+        return 0
+    count = 0
+    i = 0
+    while i < n do:
+        count = count + 1
+        i = i + p.pageSize
+    return count
+
+fuc page(p: Pager, index: int) -> list:
+    if index < 0:
+        raiseErr("page index must be >= 0")
+
+    start = index * p.pageSize
+    stop = start + p.pageSize
+    n = length(p.items)
+    if start >= n:
+        return []
+    if stop > n:
+        stop = n
+    return p.items[start:stop]
+
+export (
+    new,
+    pageCount,
+    page
+)

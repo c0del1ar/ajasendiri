@@ -1,0 +1,36 @@
+fuc upto(stop: int) -> list[int]:
+    if stop < 0:
+        raiseErr("upto expects stop >= 0")
+    out = []
+    for i in range(stop):
+        out.append(i)
+    return out
+
+fuc closed(start: int, stop: int) -> list[int]:
+    out = []
+    if start <= stop:
+        for i in range(start, stop + 1):
+            out.append(i)
+    else:
+        for i in range(start, stop - 1, -1):
+            out.append(i)
+    return out
+
+fuc step(start: int, stop: int, delta: int) -> list[int]:
+    if delta == 0:
+        raiseErr("step expects non-zero delta")
+    out = []
+    if delta > 0:
+        for i in range(start, stop, delta):
+            out.append(i)
+        return out
+
+    for i in range(start, stop, delta):
+        out.append(i)
+    return out
+
+export (
+    upto,
+    closed,
+    step
+)

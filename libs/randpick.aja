@@ -1,0 +1,29 @@
+import (
+    "rand"
+)
+
+fuc choose(items: list[str]) -> str:
+    if length(items) == 0:
+        raiseErr("choose expects non-empty list")
+    idx = rand.int(0, length(items) - 1)
+    return items[idx]
+
+fuc shuffleCopy(items: list[str]) -> list[str]:
+    out = []
+    for item in items:
+        out.append(item)
+
+    n = length(out)
+    i = 0
+    while i < n do:
+        j = rand.int(i, n - 1)
+        tmp = out[i]
+        out[i] = out[j]
+        out[j] = tmp
+        i++
+    return out
+
+export (
+    choose,
+    shuffleCopy
+)

@@ -1,0 +1,17 @@
+import (
+    "str"
+)
+
+fuc encode(key: str, value: str) -> str:
+    return key + "=" + value
+
+fuc decode(pair: str) -> (str, str):
+    idx = str.indexOf(pair, "=")
+    if idx < 0:
+        return pair, ""
+    return pair[0:idx], pair[idx+1:length(pair)]
+
+export (
+    encode,
+    decode
+)

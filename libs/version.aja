@@ -1,0 +1,32 @@
+import (
+    "str"
+)
+
+fuc parse(v: str) -> list[int]:
+    parts = str.split(v, ".")
+    if length(parts) != 3:
+        raiseErr("version.parse expects x.y.z")
+
+    out = []
+    for part in parts:
+        out.append(int(part))
+    return out
+
+fuc compare(a: str, b: str) -> int:
+    pa = parse(a)
+    pb = parse(b)
+    for i in range(3):
+        if pa[i] < pb[i]:
+            return -1
+        if pa[i] > pb[i]:
+            return 1
+    return 0
+
+fuc isAtLeast(v: str, minimum: str) -> bool:
+    return compare(v, minimum) >= 0
+
+export (
+    parse,
+    compare,
+    isAtLeast
+)

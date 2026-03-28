@@ -1,0 +1,36 @@
+fuc sumInt(items: list[int]) -> int:
+    total = 0
+    for item in items:
+        total = total + item
+    return total
+
+fuc mean(items: list[int]) -> float:
+    if length(items) == 0:
+        raiseErr("mean expects non-empty list")
+    total = sumInt(items)
+    return float(total) / float(length(items))
+
+fuc minInt(items: list[int]) -> int:
+    if length(items) == 0:
+        raiseErr("minInt expects non-empty list")
+    best = items[0]
+    for i in range(1, length(items)):
+        if items[i] < best:
+            best = items[i]
+    return best
+
+fuc maxInt(items: list[int]) -> int:
+    if length(items) == 0:
+        raiseErr("maxInt expects non-empty list")
+    best = items[0]
+    for i in range(1, length(items)):
+        if items[i] > best:
+            best = items[i]
+    return best
+
+export (
+    sumInt,
+    mean,
+    minInt,
+    maxInt
+)
