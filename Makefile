@@ -4,7 +4,7 @@ THREAD_FLAGS ?= -pthread
 OPENSSL_CFLAGS ?= $(shell pkg-config --cflags openssl 2>/dev/null)
 OPENSSL_LIBS ?= $(shell pkg-config --libs openssl 2>/dev/null)
 
-.PHONY: all run test lsp fmt fmt-check mmk-init mmk-install docs docs-check ci clean
+.PHONY: all run test lsp fmt fmt-check mmk-init mmk-install docs docs-check docs-linkcheck docs-clean clean
 
 SRC := src/cli/main.c src/lexer/lexer.c src/parser/parser.c src/runtime/runtime.c
 OBJ := $(SRC:.c=.o)
@@ -45,16 +45,16 @@ mmk-install: ajasendiri
 	./ajasendiri mmk install
 
 docs:
-	$(DOCS_PYTHON) -m sphinx -b html docs docs/_build/html
+	python3 -m sphinx -b html docs docs/_build/html
 
 docs-check:
-	$(DOCS_PYTHON) -m sphinx -W -b html docs docs/_build/html
+	python3 -m sphinx -W -b html docs docs/_build/html
 
-ci: ajasendiri
-	./ajasendiri check examples/ok.aja
-	$(MAKE) fmt-check
-	$(MAKE) test
-	$(MAKE) docs-check
+docs-linkcheck:
+	python3 -m sphinx -b linkcheck docs docs/_build/linkcheck
+
+docs-clean:
+	rm -rf docs/_build
 
 clean:
 	rm -f ajasendiri

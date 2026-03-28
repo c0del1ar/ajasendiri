@@ -111,7 +111,7 @@ path
 Pure Ajasendiri libs
 --------------------
 
-Core (installed by default with ``mmk install-stdlib``)
+Core (installed by default with ``mmk install-coli``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``libs/re.aja``: typed regex wrapper
@@ -126,7 +126,7 @@ Core (installed by default with ``mmk install-stdlib``)
 - ``libs/context.aja``: timeout/cancel helpers over channels
 - ``libs/pathlib.aja``: typed path/file helper wrappers
 
-Optional (install via ``mmk install <name>`` or ``mmk install-stdlib --all``)
+Optional (install via ``mmk install <name>`` or ``mmk install-coli --all``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``libs/httpx.aja``

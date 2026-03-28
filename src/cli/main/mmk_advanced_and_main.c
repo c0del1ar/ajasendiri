@@ -1150,10 +1150,10 @@ static int handle_venv_command(int argc, char **argv) {
 static int handle_mod_command(int argc, char **argv) {
     if (argc < 3) {
         fprintf(stderr,
-                "usage: ./ajasendiri mmk <init|add|install|install-stdlib|freeze|pack|publish|verify|search|info> ...\n");
+                "usage: ./ajasendiri mmk <init|add|install|install-coli|freeze|pack|publish|verify|search|info> ...\n");
         fprintf(stderr, "  install deps:    ./ajasendiri mmk install [--locked]\n");
         fprintf(stderr, "  install module:  ./ajasendiri mmk install <module...> [--global|--project] [--from <dir>]\n");
-        fprintf(stderr, "  install stdlib:  ./ajasendiri mmk install-stdlib [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
+        fprintf(stderr, "  install stdlib:  ./ajasendiri mmk install-coli [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
         return 1;
     }
     if (strcmp(argv[2], "init") == 0) {
@@ -1165,8 +1165,11 @@ static int handle_mod_command(int argc, char **argv) {
     if (strcmp(argv[2], "install") == 0) {
         return handle_mod_install(argc, argv);
     }
+    if (strcmp(argv[2], "install-coli") == 0) {
+        return handle_mod_install_coli(argc, argv);
+    }
     if (strcmp(argv[2], "install-stdlib") == 0) {
-        return handle_mod_install_stdlib(argc, argv);
+        return handle_mod_install_coli(argc, argv);
     }
     if (strcmp(argv[2], "pack") == 0) {
         return handle_mod_pack(argc, argv);
@@ -1199,10 +1202,10 @@ static void print_usage(void) {
     fprintf(stderr, "   or: ./ajasendiri fmt [--check] [--write] [--stdin] <file_or_dir...>\n");
     fprintf(stderr, "   or: ./ajasendiri test [test_file_or_dir...]\n");
     fprintf(stderr,
-            "   or: ./ajasendiri mmk <init|add|install|install-stdlib|freeze|pack|publish|verify|search|info> ...\n");
+            "   or: ./ajasendiri mmk <init|add|install|install-coli|freeze|pack|publish|verify|search|info> ...\n");
     fprintf(stderr, "      deps:    ./ajasendiri mmk install [--locked]\n");
     fprintf(stderr, "      module:  ./ajasendiri mmk install <module...> [--global|--project] [--from <dir>]\n");
-    fprintf(stderr, "      stdlib:  ./ajasendiri mmk install-stdlib [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
+    fprintf(stderr, "      stdlib:  ./ajasendiri mmk install-coli [--global|--project] [--from <dir>] [--core|--optional|--all]\n");
 }
 
 int main(int argc, char **argv) {

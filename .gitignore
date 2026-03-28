@@ -7,6 +7,7 @@ ajasendiri
 .aja/
 .ajaenv/
 .venv/
+pyvenv/
 *.ajapkg
 
 # Keep committed test fixture modules under tests/
@@ -31,5 +32,5 @@ Thumbs.db
 __pycache__/
 *.pyc
 
-# Docs build output
+# Sphinx output
 docs/_build/

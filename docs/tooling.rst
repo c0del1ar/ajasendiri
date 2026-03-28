@@ -9,6 +9,9 @@ Build and test
    make
    make ci
    make test
+   make docs
+   make docs-check
+   make docs-linkcheck
 
 Run commands
 ------------
@@ -78,8 +81,8 @@ Dependency tooling (mmk)
    ./ajasendiri mmk add <module> --version <x.y.z|^x.y|~x.y|latest|*>
    ./ajasendiri mmk install
    ./ajasendiri mmk install httpx --global
-   ./ajasendiri mmk install-stdlib --global
-   ./ajasendiri mmk install-stdlib --global --all
+   ./ajasendiri mmk install-coli --global
+   ./ajasendiri mmk install-coli --global --all
    ./ajasendiri mmk search [query]
    ./ajasendiri mmk info <module> [--version <selector>]
    ./ajasendiri mmk verify
@@ -89,8 +92,14 @@ Notes:
 - Default project install target is ``./.aja/site-packages``.
 - With active ``AJA_VENV``, install target becomes ``$AJA_VENV/site-packages``.
 - ``mmk install <module> --global`` installs optional bundled libs to ``$HOME/.aja/site-packages``.
-- ``mmk install-stdlib --global`` installs core pure ``.aja`` libs.
-- ``mmk install-stdlib --global --all`` installs core + optional pure libs.
+- ``mmk install-coli --global`` installs core pure ``.aja`` libs.
+- ``mmk install-coli --global --all`` installs core + optional pure libs.
 - Registry selectors are resolved and pinned in ``requirements.txt``.
 - If ``AJA_SIGN_KEY`` is set, ``mmk pack/publish`` sign packages and ``mmk install/verify`` validate signatures.
 - Set ``AJA_REQUIRE_SIGNATURE=1`` to require signed registry dependencies.
+
+Docs publishing
+---------------
+
+- GitHub Pages deploys docs from ``main`` using ``.github/workflows/docs-pages.yml``.
+- Custom domain is ``anehaja.aryakun.id`` (via ``docs/CNAME``).
