@@ -8,6 +8,7 @@ Build and test
 
    make
    make test
+   make docs
 
 Run commands
 ------------
